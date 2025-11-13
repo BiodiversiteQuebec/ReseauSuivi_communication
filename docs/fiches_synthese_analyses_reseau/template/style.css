@@ -19,10 +19,10 @@ body {
   text-shadow: 2px 2px 2px #162618;
 }
 
-.bq-header .subtitle {
+.subtitle {
   font-family: "Source Serif 4", serif;
   color:white;
-  font-size: 22px;
+  font-size: 30px;
   font-style: italic;
   padding: 5px 0 40px 40px;
 }
@@ -73,7 +73,7 @@ h3{
 }
 
 .key-points ul {
-  list-style-image: url('./pictures/Logo_tres_petit_blanc.png');
+  list-style-image: url('pictures/Logo_tres_petit_blanc.png');
   margin-left: 20px;
 }
 .key-points li {
