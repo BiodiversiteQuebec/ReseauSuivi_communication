@@ -1,0 +1,37 @@
+---
+title: ""
+output:
+  html_document:
+    toc: true
+    number_sections: true
+    toc_float: true
+    css: "style.css"
+    self_contained: false
+---
+<div class="bq-header" style="background:url('https://portail.biodiversite-quebec.ca/uploads/large_133_106_F01_20231017_2_815_D3189_15_B7_476_E_A3_F1_A442_E1_E55_F2_B_6b725392b5.jpg')">
+<h1>Portrait de la biodiversité</h1>
+<div class="subtitle">
+Compréhension des patrons affectant la dissimilarité entre les sites
+</div>
+<div class="main-logo-div"><img class="main-logo" src="../template/pictures/Logo_bq_sans_texte.png"></div>
+<div class="maj-badge"><img src="https://img.shields.io/badge/MAJ-13nov2025-E0B658"></a></div>
+</div>
+
+
+
+<div class="key-points">
+<div class="key-title">
+Messages clés
+</div>
+<ul>
+<li>
+La dissimilarité entre les sites est surtout causée par des variables opérant à petite échelle. 
+</li>
+<li>
+Les sites du sud sont davantage responsables de la dissimilarité que les sites du nord. 
+</li>
+<li>
+Une grande partie de la variation reste inexpliquée. 
+</li>
+</ul>
+</div>
