@@ -47,7 +47,8 @@ L'analyse utilise les données du Réseau de Suivi de la Biodiversité du Québe
 <h1>Résultats</h1>
 
 <img src = "fiche_synthese_dissi_fig1_version3.png" width = "600" height = "auto"/>
-<img src = "fiche_synthese_dissi_fig2.png" width = "auto" height = "auto"/>
+<img src = "fiche_synthese_dissi_LCBD_repl_fig3_v3.png" width = "900" height = "auto"/>
+<img src = "fiche_synthese_dissi_LCBD_richDiff_fig3_v3.png" width = "900" height = "auto"/>
 
 <h1>Discussion</h1>
 Perspectives = Quels facteurs environnementaux peuvent expliquer la différence en richesse spécifique et le remplacement par groupe taxonomique par habitat ? avec utilisation des generalized dissimilarity models (Mokany et al 2022) pour étudier les liens entre la dissimilarité et les facteurs spatiaux, environnementaux et temporels. Ou une analyse de redondance peut ensuite être utilisée pour expliquer les liens écologiques.
@@ -73,5 +74,6 @@ Williams, P.H. (1996) Mapping variations in the strength and breadth of biogeogr
 
 <h1>Extra</h1>
 
+<img src = "fiche_synthese_dissi_fig2.png" width = "auto" height = "auto"/>
 <img src = "fiche_synthese_dissi_fig1_version1.png" width = "auto" height = "500"/>
 <img src = "fiche_synthese_dissi_fig1_version2.png" width = "auto" height = "500"/>
