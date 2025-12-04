@@ -63,14 +63,15 @@ Perspectives = Quels facteurs environnementaux peuvent expliquer la différence 
 <img src = "fiche_synthese_dissi_fig1_version3.png" width = "600" height = "auto"/>  
 **Figure 1** : Dissimilarité totale entre les sites inventoriés par le Réseau de Suivi de la Biodiversité du Québec pour 5 groupes taxonomiques (du haut vers le bas) : chiroptères, orthoptères, oiseaux, insectes du sol et végétation. Ce graphique présente la valeur de dissimilarité totale par groupe taxonomique (marron) et dans quelles proportions cette dissimilarité est expliquée par le remplacement des espèces (orange) et la différence en richesse spécifique (jaune) entre les sites.   
 
+<img src = "fiche_synthese_dissi_LCBD__fig4.png" width = "900" height = "auto"/>  
+**Figure 2** : Valeurs de contribution locale à la diversité béta (LCBD) par sites par groupe taxonomique (bleu : chiroptères, cyan : oiseaux, jaune : orthoptères, marron : insectes du sol, vert : végétation). La taille des cercles correspond à la valeur de LCBD. La couleur pleine indique que la valeur du LCBD est significativement différente de 0 (basé sur les valeurs de p.value non ajustées pour des tests multiples).
+
 <img src = "fiche_synthese_dissi_LCBD_richDiff_fig3_v3.png" width = "900" height = "auto"/>  
-**Figure 2** : Valeur de la contribution locale à l’indice de différence de richesse spécifique pour les chiroptères, les orthoptères et les insectes du sol. La taille des points est proportionnelle à la valeur de l’indice. Pour chaque groupe taxonomique, certains sites semblent contribuer de façon plus importante à la différence en richesse spécifique (point les plus gros; significativité de LCBD non testable à cause de la méthode de calcul).
+**Figure 3** : Valeur de la contribution locale à l’indice de différence de richesse spécifique pour les chiroptères, les orthoptères et les insectes du sol. La taille des points est proportionnelle à la valeur de l’indice. Pour chaque groupe taxonomique, certains sites semblent contribuer de façon plus importante à la différence en richesse spécifique (point les plus gros; significativité de LCBD non testable à cause de la méthode de calcul).
 
 <img src = "fiche_synthese_dissi_LCBD_repl_fig3_v3.png" width = "900" height = "auto"/>  
-**Figure 3** : Valeur de la contribution locale à l’indice de remplacement des espèces pour les oiseaux et la végétation. La taille des points est proportionnelle à la valeur de l’indice. Pour chaque groupe taxonomique, les sites présentent une certaine homogénéité en termes de contribution au remplacement des espèces (point de taille équivalente; significativité de LCBD non testable à cause de la méthode de calcul). 
+**Figure 4** : Valeur de la contribution locale à l’indice de remplacement des espèces pour les oiseaux et la végétation. La taille des points est proportionnelle à la valeur de l’indice. Pour chaque groupe taxonomique, les sites présentent une certaine homogénéité en termes de contribution au remplacement des espèces (point de taille équivalente; significativité de LCBD non testable à cause de la méthode de calcul). 
 
-<img src = "fiche_synthese_dissi_LCBD__fig4.png" width = "900" height = "auto"/>  
-**Figure 4** : Valeurs de contribution locale à la diversité béta (LCBD) par sites par groupe taxonomique (bleu : chiroptères, cyan : oiseaux, jaune : orthoptères, marron : insectes du sol, vert : végétation). La taille des cercles correspond à la valeur de LCBD. La couleur pleine indique que la valeur du LCBD est significativement différente de 0 (basé sur les valeurs de p.value non ajustées pour des tests multiples).
 
 
 <h1>Lexique</h1>

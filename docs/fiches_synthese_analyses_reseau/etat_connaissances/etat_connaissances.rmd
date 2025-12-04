@@ -1,0 +1,217 @@
+---
+title: ""
+output:
+  html_document:
+    toc: true
+    number_sections: true
+    toc_float: true
+    css: "../template/style.css"
+    self_contained: false
+---
+<div class="bq-header" style="background:url('https://portail.biodiversite-quebec.ca/uploads/large_133_106_F01_20231017_2_815_D3189_15_B7_476_E_A3_F1_A442_E1_E55_F2_B_6b725392b5.jpg')">
+<h1>Portrait de la biodiversité</h1>
+<div class="subtitle">
+Estimation de l'état des connaissances sur la biodiversité
+</div>
+<div class="main-logo-div"><img class="main-logo" src="../template/pictures/Logo_bq_sans_texte.png"></div>
+<div class="maj-badge"><img src="https://img.shields.io/badge/MAJ-4dec2025-E0B658"></a></div>
+</div>
+
+
+
+<div class="key-points">
+<div class="key-title">
+Messages clés
+</div>
+<ul>
+<li>
+Le groupe le moins représenté est
+</li>
+<li>
+xxx
+</li>
+<li>
+xxx
+</li>
+</ul>
+</div>
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+library(dplyr)
+library(sf)
+library(ggplot2)
+library(ggnewscale)
+library(plotly)
+library(tiff)
+library(grid)
+library(rcoleo)
+
+# custom function for pictograms
+annotation_custom2 <-
+    function(grob, xmin = -Inf, xmax = Inf, ymin = -Inf, ymax = Inf, data) {
+        layer(
+            data = data, stat = StatIdentity, position = PositionIdentity,
+            geom = ggplot2:::GeomCustomAnn,
+            inherit.aes = TRUE, params = list(
+                grob = grob,
+                xmin = xmin, xmax = xmax,
+                ymin = ymin, ymax = ymax
+            )
+        )
+    }
+
+# data
+sites <- coleo_request_general("sites", response_as_df = TRUE, schema = "public")
+sites <- sites |>
+    mutate(lon = sapply(geom$coordinates, "[", 1)) |>
+    mutate(lat = sapply(geom$coordinates, "[", 2)) |>
+    as.data.frame()
+
+inext_estimates <- readRDS("/home/local/USHERBROOKE/juhc3201/BdQc/ReseauSuivi/Data/summer_blitz_rarefaction/inext_estimates_per_sites.rds")
+# visualisation
+inext_estimates$prop_obs <- (inext_estimates$sp_observed / inext_estimates$sp_estimator) * 100
+
+# inext_estimates <- left_join(inext_estimates, sites[, c("site_code", "lat", "lon")], by = join_by(code_site == site_code))
+inext_sf <- st_as_sf(inext_estimates, coords = c("lon", "lat"), crs = st_crs(4326))
+qc <- st_read("https://object-arbutus.cloud.computecanada.ca/bq-io/acer/reseau_suivi_data/QUEBEC_regions/sf_CERQ_SHP/QUEBEC_CR_NIV_01.gpkg")
+qc2 <- st_union(qc)
+qc3 <- st_transform(qc2, crs = st_crs(inext_sf))
+
+# for adding picto
+bat <- readTIFF("/home/local/USHERBROOKE/juhc3201/BdQc/ReseauSuivi/portail_pictograms/bq_couleur/bat_darkblue.tiff")
+ortho <- readTIFF("/home/local/USHERBROOKE/juhc3201/BdQc/ReseauSuivi/portail_pictograms/bq_couleur/ortho_yellow.tiff")
+ins <- readTIFF("/home/local/USHERBROOKE/juhc3201/BdQc/ReseauSuivi/portail_pictograms/bq_couleur/coleo_brown.tiff")
+oiseau <- readTIFF("/home/local/USHERBROOKE/juhc3201/BdQc/ReseauSuivi/portail_pictograms/bq_couleur/bird_blue.tiff")
+vegetation <- readTIFF("/home/local/USHERBROOKE/juhc3201/BdQc/ReseauSuivi/portail_pictograms/bq_couleur/plant_green.tiff")
+
+
+pic_bat <- annotation_custom2(rasterGrob(bat, interpolate = TRUE), xmin = -69, xmax = -66, ymin = 58.5, ymax = 61.5, data = inext_sf[1, ])
+pic_bird <- annotation_custom2(rasterGrob(oiseau, interpolate = TRUE), xmin = -69, xmax = -66, ymin = 58.5, ymax = 61.5, data = inext_sf[228, ])
+pic_ortho <- annotation_custom2(rasterGrob(ortho, interpolate = TRUE), xmin = -69, xmax = -66, ymin = 58.5, ymax = 61.5, data = inext_sf[373, ])
+pic_ins <- annotation_custom2(rasterGrob(ins, interpolate = TRUE), xmin = -69, xmax = -66, ymin = 58.5, ymax = 61.5, data = inext_sf[505, ])
+pic_vege <- annotation_custom2(rasterGrob(vegetation, interpolate = TRUE), xmin = -69, xmax = -66, ymin = 58.5, ymax = 61.5, data = inext_sf[453, ])
+```
+
+
+```{r chiro, fig.show = "hold", out.width = "100%", height = "100%", echo = FALSE, warning = FALSE, message = FALSE}
+inext_map <- inext_sf |>
+    ggplot() +
+    geom_sf(
+        data = qc3
+    ) +
+    # layer for chiropteres
+    geom_sf(data = subset(inext_sf, type_campaign == "chiropteres"), aes(
+        size = prop_obs,
+        color = prop_obs,
+        alpha = -prop_obs
+    )) +
+    scale_color_gradient(low = "#000000", high = "#242e86") +
+    labs(x = "Longitude", y = "Latitude") +
+    theme(
+        legend.position = "none",
+        strip.background = element_blank(),
+        strip.text.x = element_blank(),
+        text = element_text(size = 20),
+        panel.background = element_rect(fill = "transparent", color = "transparent"),
+    )
+ggplotly(inext_map + pic_bat)
+```
+
+```{r oiseau, fig.show = "hold", out.width = "100%", height = "100%", echo = FALSE, warning = FALSE, message = FALSE}
+inext_map <- inext_sf |>
+    ggplot() +
+    geom_sf(
+        data = qc3
+    ) +
+    # layer for oiseaux
+    geom_sf(data = subset(inext_sf, type_campaign == "oiseaux"), aes(
+        size = prop_obs,
+        color = prop_obs,
+        alpha = -prop_obs
+    )) +
+    scale_color_gradient(low = "#000000", high = "#88bcb9") +
+    labs(x = "Longitude", y = "Latitude") +
+    theme(
+        legend.position = "none",
+        strip.background = element_blank(),
+        strip.text.x = element_blank(),
+        text = element_text(size = 20),
+        panel.background = element_rect(fill = "transparent", color = "transparent"),
+    )
+ggplotly(inext_map + pic_bird)
+```
+
+```{r ortho, fig.show = "hold", out.width = "100%", height = "100%", echo = FALSE, warning = FALSE, message = FALSE}
+inext_map <- inext_sf |>
+    ggplot() +
+    geom_sf(
+        data = qc3
+    ) +
+    # layer for orthopteres
+    geom_sf(data = subset(inext_sf, type_campaign == "orthopteres"), aes(
+        size = prop_obs,
+        color = prop_obs,
+        alpha = -prop_obs
+    )) +
+    scale_color_gradient(low = "#000000", high = "#e3bd69") +
+    labs(x = "Longitude", y = "Latitude") +
+    theme(
+        legend.position = "none",
+        strip.background = element_blank(),
+        strip.text.x = element_blank(),
+        text = element_text(size = 20),
+        panel.background = element_rect(fill = "transparent", color = "transparent"),
+    )
+ggplotly(inext_map + pic_ortho)
+```
+
+```{r vegetation, fig.show = "hold", out.width = "100%", height = "100%", echo = FALSE, warning = FALSE, message = FALSE}
+inext_map <- inext_sf |>
+    ggplot() +
+    geom_sf(
+        data = qc3
+    ) +
+    # layer for vegetation_transect
+    geom_sf(data = subset(inext_sf, type_campaign == "vegetation_transect"), aes(
+        size = prop_obs,
+        color = prop_obs,
+        alpha = -prop_obs
+    )) +
+    scale_color_gradient(low = "#000000", high = "#435a51") +
+    labs(x = "Longitude", y = "Latitude") +
+    theme(
+        legend.position = "none",
+        strip.background = element_blank(),
+        strip.text.x = element_blank(),
+        text = element_text(size = 20),
+        panel.background = element_rect(fill = "transparent", color = "transparent"),
+    )
+ggplotly(inext_map + pic_vege)
+```
+
+```{r insecte, fig.show = "hold", out.width = "100%", height = "100%", echo = FALSE, warning = FALSE, message = FALSE}
+inext_map <- inext_sf |>
+    ggplot() +
+    geom_sf(
+        data = qc3
+    ) +
+    # layer for insecte_sol
+    geom_sf(data = subset(inext_sf, type_campaign == "insecte_sol"), aes(
+        size = prop_obs,
+        color = prop_obs,
+        alpha = -prop_obs
+    )) +
+    scale_color_gradient(low = "#000000", high = "#b88157") +
+    ggfun::geom_image(aes(x = -59, y = 58.5), img = ins) +
+    labs(x = "Longitude", y = "Latitude") +
+    theme(
+        legend.position = "none",
+        strip.background = element_blank(),
+        strip.text.x = element_blank(),
+        text = element_text(size = 20),
+        panel.background = element_rect(fill = "transparent", color = "transparent"),
+    )
+tot_plot <- inext_map + pic_ins
+ggplotly(tot_plot)
+```
