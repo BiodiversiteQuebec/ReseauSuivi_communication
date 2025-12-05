@@ -93,6 +93,36 @@ pic_ins <- annotation_custom2(rasterGrob(ins, interpolate = TRUE), xmin = -69, x
 pic_vege <- annotation_custom2(rasterGrob(vegetation, interpolate = TRUE), xmin = -69, xmax = -66, ymin = 58.5, ymax = 61.5, data = inext_sf[453, ])
 ```
 
+# Représentativité du Réseau de Suivi par groupe taxonomique
+```{r global, fig.show = "hold", out.width = "100%", height = "100%", echo = FALSE, warning = FALSE, message = FALSE}
+glob_plot <- inext_sf |>
+    ggplot() +
+    geom_sf(
+        data = qc3
+    ) +
+    geom_sf(aes(
+        size = prop_obs,
+        color = prop_obs <= 50,
+        # color = prop_obs,
+        # alpha = -prop_obs
+    )) +
+    scale_colour_manual(name = "prop_obs <= 50", values = setNames(c("#81522e", "#b881572d"), c(T, F))) +
+    # scale_size_continuous(range = c(5, 15)) +
+    # scale_color_gradientn(colours = rev(viridis(4))) +
+    # scale_color_gradient(low = "#000000", high = "#b88157") +
+    facet_wrap(~type_campaign, ncol = 2) +
+    labs(x = "Longitude", y = "Latitude") +
+    theme(
+        legend.position = "none",
+        # strip.background = element_blank(),
+        # strip.text.x = element_blank(),
+        text = element_text(size = 20),
+        panel.background = element_rect(fill = "transparent", color = "transparent"),
+    )
+
+ggplotly(glob_plot)
+```
+
 
 ```{r chiro, fig.show = "hold", out.width = "100%", height = "100%", echo = FALSE, warning = FALSE, message = FALSE}
 inext_map <- inext_sf |>
