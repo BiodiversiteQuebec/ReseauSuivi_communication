@@ -1,5 +1,5 @@
 ---
-title: ""
+title: "État des connaissance"
 output:
   html_document:
     toc: true
@@ -11,10 +11,10 @@ output:
 <div class="bq-header" style="background:url('https://portail.biodiversite-quebec.ca/uploads/large_133_106_F01_20231017_2_815_D3189_15_B7_476_E_A3_F1_A442_E1_E55_F2_B_6b725392b5.jpg')">
 <h1>Portrait de la biodiversité</h1>
 <div class="subtitle">
-Estimation de l'état des connaissances sur la biodiversité
+Représentativité de la biodiversité par le Réseau de Suivi 
 </div>
 <div class="main-logo-div"><img class="main-logo" src="../template/pictures/Logo_bq_sans_texte.png"></div>
-<div class="maj-badge"><img src="https://img.shields.io/badge/MAJ-4dec2025-E0B658"></a></div>
+<div class="maj-badge"><img src="https://img.shields.io/badge/MAJ-10dec2025-E0B658"></a></div>
 </div>
 
 
@@ -25,13 +25,13 @@ Messages clés
 </div>
 <ul>
 <li>
-Le groupe le moins représenté est
-</li>
-<li>
 xxx
 </li>
 <li>
-xxx
+Les groupes présentant une moins bonne représentatitivité de leur diveresité spécifique sont les insectes du sol, les oiseaux et la végétation par transect.
+</li>
+<li>
+Les sites inventoriés pour ces trois groupes taxonomiques présentent une grande variabilité au niveau de leur propre représentativité en terme de diversité spécifique. Plusieurs sites avec un faible taux de représentativité peuvent être identifiés et un effort supplémentaire d'échantillonnage pourrait être mis en place pour améliorer l'exhaustivité de la liste d'espèces.
 </li>
 </ul>
 </div>
