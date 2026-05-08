@@ -1,33 +1,11 @@
-# ================================================================================
-# Chargement packages & data
-# ================================================================================
-
-#### Packages ####
-# -------------- #
+# Packages
 library(shiny)
 library(shinydashboard)
-library(shinyWidgets)
-library(leaflet)
-library(sf)
-library(htmltools)
-library(gdalcubes)
-library(rstac)
-library(terra)
-library(stringr)
-library(ENMeval)
-library(rgbif)
-library(geodata)
-library(rmapshaper)
-library(rnaturalearth)
-library(RCurl) # for check if url exists - url.exists()
-library(vegan)
-library(adespatial)
-library(rcoleo)
-library(dplyr)
-library(ggplot)
+library(tidyverse)
+library(ggplot2)
 library(plotly)
-library(bslib)
 
+# Data
 #### Local data ####
 # ---------------- #
 # recup des sites dans coleo avec les lat/lon
@@ -114,13 +92,25 @@ mat_hab_ls <- readRDS(url("https://object-arbutus.cloud.computecanada.ca/bq-io/a
 beta_ls <- readRDS(url("https://object-arbutus.cloud.computecanada.ca/bq-io/acer/reseau_suivi_data/xx_compo_communaute/COMPO_COMMU_betadiv_inventaire_terrestre_maj28JANVIER2026.rds"))
 
 beta_hab_ls <- readRDS(url("https://object-arbutus.cloud.computecanada.ca/bq-io/acer/reseau_suivi_data/xx_compo_communaute/COMPO_COMMU_betadiv_inventaire_terrestre_per_habitat_maj28JANVIER2026.rds"))
-
+# à utiliser pour calculer LCBD dissi par habitat ****
 
 # data - lcbd
 
+dissi_res_ls <- list()
+for (i in 1:length(taxon)) {
+    inv <- taxon[i]
+    mat <- mat_ls[[inv]]
+    matm <- mat$matrix
+
+    bt <- beta.div.comp(matm, coef = "J", quant = FALSE) # utilisation de l'indice de Jaccard (coef = "J") car donnees de pres/abs
+    bt$inventaire <- inv
+    dissi_res_ls[[i]] <- bt}
+names(dissi_res_ls) <- taxon
+
+# ----- #
 lcbd_dissi <- data.frame()
-richdiff_taxo <- data.frame()
-rempl_taxo <- data.frame()
+# richdiff_taxo <- data.frame()
+# rempl_taxo <- data.frame()
 
 for (i in 1:length(taxon)) {
     inv <- taxon[i]
@@ -136,16 +126,121 @@ for (i in 1:length(taxon)) {
         p.adj = beta$p.adj
     )
     lcbd_dissi <- rbind(lcbd_dissi, beta_df)
+
+    #     if (inv %in% c("acoustique_chiropteres_species", "acoustique_orthopteres", "acoustique_anoures")) {
+    #     LCBD.rich <- LCBD.comp(dissi_res_ls[[inv]]$rich, sqrt.D = TRUE) # prendre la racine carre car pas euclidienne & Significance of the LCBD indices cannot be tested (cf function help)
+    #     df_int <- data.frame(inv = inv, type = "richdiff", site_code = colnames(dissi_res_ls[[inv]]$rich), LCBD = LCBD.rich$LCBD)
+    #     richdiff_taxo <- rbind(richdiff_taxo, df_int)
+    # } else {
+    #     LCBD.repl <- LCBD.comp(dissi_res_ls[[inv]]$repl, sqrt.D = TRUE) # prendre la racine carre car pas euclidienne & Significance of the LCBD indices cannot be tested (cf function help)
+    #     df_int <- data.frame(inv = inv, type = "repl", site_code = colnames(dissi_res_ls[[inv]]$repl), LCBD = LCBD.repl$LCBD)
+    #     rempl_taxo <- rbind(rempl_taxo, df_int)
+    # }
 }
+
+
 lcbd_dissi <- left_join(lcbd_dissi, sites[, c("site_code", "lat", "lon")], by = join_by(site_code))
+# richdiff_taxo <- left_join(richdiff_taxo, sites[, c("site_code", "lat", "lon")], by = join_by(site_code))
+# rempl_taxo <- left_join(rempl_taxo, sites[, c("site_code", "lat", "lon")], by = join_by(site_code))
+
 lcbd_dissi_sf <- st_as_sf(lcbd_dissi, coords = c("lon", "lat"), crs = st_crs(4326))
+# richdiff_taxo_sf <- st_as_sf(richdiff_taxo, coords = c("lon", "lat"), crs = st_crs(4326))
+# rempl_taxo_sf <- st_as_sf(rempl_taxo, coords = c("lon", "lat"), crs = st_crs(4326))
 
 
-# ================================================================================
-# server
-# ================================================================================
-server <- function(input, output, session) {
-    #### Habitat selection depending on taxon choice
+# ---------- #
+# UI ----
+# ----------# 
+
+ui <- navbarPage(
+  shinyWidgets::useShinydashboard(),
+  
+  title = "My App",
+  tabPanel(
+    "Tab1", icon = icon("home"),
+    fluidPage(
+      sidebarLayout(
+        sidebarPanel(
+          width = 2,
+          h4("Groupe taxonomique"),
+            selectInput("taxon_select",
+                label = "",
+                choices = taxon
+            ),
+            h4("Habitat"),
+            uiOutput("habitat",
+                label = ""
+            ) # associated to renderUI in server section
+            ,
+          # create extra vertical space in sidebar (for illustration only)
+          HTML(rep('<br>', 30))
+        ),
+        
+        mainPanel(width = 10,
+          # 1st fluid row for value boxes
+          fluidRow(
+            # Value Box 1
+            valueBoxOutput(outputId = "message_1", width = 4),
+            
+            # Value Box 2
+            valueBoxOutput(outputId = "message_2", width = 4),
+            
+            # Value Box 3
+            valueBoxOutput(outputId = "message_3", width = 4)
+          ),
+          br(),
+          hr(),
+          
+          # 2nd fluid row for map and plots
+          fluidRow(
+                      
+            # 1st column for plots
+            column(5, 
+                   # fluidRow for sales trend
+                   fluidRow(style = 'border: 1px solid lightgrey; border-radius: 25px; margin-left: 10px; padding-left: 10px;',
+                            br(),
+                            # sales trend title and info button
+                            div(HTML('<b>Dissimilarité - Barplot</b> '), style = 'display: inline-block;'),
+                            uiOutput('barplot_button', style = 'display: inline-block;'),
+                            br(), br(),
+                            # trend plot
+                            plotlyOutput('barplot', height = '175px')
+                            ),
+                   br(),
+                   # fluidRow for bar plot
+                   fluidRow(style = 'border: 1px solid lightgrey; border-radius: 25px; margin-left: 10px; padding-left: 10px;',
+                            br(),
+                            # bar plot title and info button
+                            div(HTML('<b>Triplot</b> '), style = 'display: inline-block;'),
+                            uiOutput('triplot_button', style = 'display: inline-block;'),
+                            br(), br(),
+                            # bar plot
+                            plotOutput('triplot', height = '175px')
+                            )
+                   ),
+            # 2nd column for map
+            column(7,
+                   style = 'border: 1px solid lightgrey; border-radius: 25px',
+                   br(),
+                   # ntitle and info button
+                   div(HTML('<b>Carte de contribution locale</b> '), style = 'display: inline-block;'),
+                   uiOutput('map_button', style = 'display: inline-block;'),
+                   br(), br(),
+                   # map plot
+                   plotOutput('dissi_map'),
+                   br(), br(), br()
+                   ),
+          )
+        )
+      )
+    )
+  )
+)
+
+# Server ----
+server <- function(input, output) {
+  
+      #### Habitat selection depending on taxon choice
     output$habitat <- renderUI({
         n <- names(beta_hab_ls[[input$taxon_select]])
         selectInput("habitat_select",
@@ -154,7 +249,29 @@ server <- function(input, output, session) {
         )
     })
 
-    # selection des données en fonction des filtres précédents
+# Box zone #
+# ------ #
+  # Box 1
+  output$message_1 <- shinydashboard::renderValueBox({
+    valueBox(5, "Message 1", color = "green"
+    )
+  })
+  
+  # Box 2
+  output$message_2 <- renderValueBox({
+    valueBox(10, "Message 2", color = "blue"
+    )
+  })
+  
+  # Box 3
+  output$message_3 <- renderValueBox({
+    valueBox(15, "Message 3", color = "purple"
+    )
+  })
+  
+  # Interactive data zone #
+  # --------------------- #
+  # selection des données en fonction des filtres précédents
     # --- #
     remdiff <- reactive({
         if(input$habitat_select == "global"){
@@ -167,11 +284,20 @@ server <- function(input, output, session) {
         })
     # --- #
     lcbd <- reactive({
-        lcbd_dissi_sf[lcbd_dissi_sf$inv == input$taxon_select,]
+        if(input$habitat_select == "global"){
+            lcbd_dissi_sf[lcbd_dissi_sf$inv == input$taxon_select,]
+
+        } else if(input$taxon_select %in% c("acoustique_anoures", "acoustique_chiropteres_species", "acoustique_orthopteres")) {
+            richdiff_taxo_sf[richdiff_taxo_sf$inv == input$taxon_select,]
+        } else {
+            rempl_taxon_sf[rempl_taxon_sf$inv == input$taxon_select,]
+        }
     })
 
+  # Plot zone #
+  # --------- #
 
-    # généation du triplot
+    # 1 - généation du triplot
     output$triplot <- renderPlot({
        
         # data frame for triangular plot
@@ -196,7 +322,7 @@ server <- function(input, output, session) {
         text(0, -0.6, "Similarité de Jaccard", cex = 1.5)
         })
 
-        # génération du barplot
+    # 2 - génération du barplot
     output$barplot <- renderPlotly({
 
         # data pour le barplot
@@ -240,7 +366,9 @@ server <- function(input, output, session) {
             fill = indice,
             text = sprintf("code site: %s<br>Latitude: %s<br>%s: %s", site_code, lat, ifelse(indice == "remplacement", "Remplacement", "Différence"), abs(value))
         )) +
-        geom_bar(stat = "identity", width = 0.75) +
+        geom_bar(stat = "identity"
+        # , width = 0.75
+        ) +
         coord_flip() +
         scale_x_discrete(limits = the_order) +
         scale_fill_manual(values = c(
@@ -270,9 +398,11 @@ server <- function(input, output, session) {
         xaxis = list(showticklabels = FALSE)
     )
         })
-
-    # génération de la carte LCBDdissimilarité
+  # Map zone #
+  # ------- #
+  # 1 - génération de la carte LCBDdissimilarité
     output$dissi_map <- renderPlot({
+
             ggplot() +
             geom_sf(
                 data = qc3
@@ -295,54 +425,25 @@ server <- function(input, output, session) {
                 text = element_text(size = 20),
                 panel.background = element_rect(fill = "transparent", color = "transparent"),
             )
+            
     })
 
+  # Button zone #
+  # ----------- #
+  # barplot button
+  output$barplot_button <- renderUI({
+    actionButton('BarplotButton', NULL, icon = icon('info'), style = 'border-radius: 50%;')
+  })
+  # triplot button
+  output$triplot_button <- renderUI({
+    actionButton('TriplotButton', NULL, icon = icon('info'), style = 'border-radius: 50%;')
+  })  
+  # map button
+  output$map_button <- renderUI({
+    actionButton('MapButton', NULL, icon = icon('info'), style = 'border-radius: 50%;')
+  })
+  
 }
 
-# ================================================================================
-# UI
-# ================================================================================
-ui <- navbarPage(
-    # tabPanel(
-    # "SDMs",
-    sidebarLayout(
-        sidebarPanel(
-            width = 2,
-            h4("Groupe taxonomique"),
-            selectInput("taxon_select",
-                label = "",
-                choices = taxon
-            ),
-            h4("Habitat"),
-            uiOutput("habitat",
-                label = ""
-            ) # associated to renderUI in server section
-            
-        ),
-        mainPanel(
-            column(width = 4,
-            fluidRow(
-
-  card(full_screen = TRUE, card_header("Triplot"), plotOutput("triplot")),
-  card(full_screen = TRUE, card_header("Barplot"), plotlyOutput("barplot"))
-
-                # navset_card_underline(
-                #     title = "Dissimilarité entre les sites",
-                #     nav_panel("Triplot", plotOutput("triplot")),
-                #     nav_panel("Barplot", plotlyOutput("barplot"))
-                #     )  
-    )),
-            column(width = 8,
-                    plotOutput("dissi_map")
-            )
-            )
-)
-)
-# ================================================================================
-# Lancer l'application
-# ================================================================================
-
+# Run the application 
 shinyApp(ui = ui, server = server)
-
-
-
