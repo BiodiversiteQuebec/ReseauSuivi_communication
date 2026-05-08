@@ -4,7 +4,11 @@ library(shinydashboard)
 library(tidyverse)
 library(ggplot2)
 library(plotly)
-
+library(rcoleo)
+library(sf)
+library(rmapshaper)
+library(vegan)
+library(adespatial)
 # Data
 #### Local data ####
 # ---------------- #
@@ -94,8 +98,7 @@ beta_ls <- readRDS(url("https://object-arbutus.cloud.computecanada.ca/bq-io/acer
 beta_hab_ls <- readRDS(url("https://object-arbutus.cloud.computecanada.ca/bq-io/acer/reseau_suivi_data/xx_compo_communaute/COMPO_COMMU_betadiv_inventaire_terrestre_per_habitat_maj28JANVIER2026.rds"))
 # à utiliser pour calculer LCBD dissi par habitat ****
 
-# data - lcbd
-
+# data - lcbd - global
 dissi_res_ls <- list()
 for (i in 1:length(taxon)) {
     inv <- taxon[i]
@@ -109,8 +112,6 @@ names(dissi_res_ls) <- taxon
 
 # ----- #
 lcbd_dissi <- data.frame()
-# richdiff_taxo <- data.frame()
-# rempl_taxo <- data.frame()
 
 for (i in 1:length(taxon)) {
     inv <- taxon[i]
@@ -126,27 +127,59 @@ for (i in 1:length(taxon)) {
         p.adj = beta$p.adj
     )
     lcbd_dissi <- rbind(lcbd_dissi, beta_df)
-
-    #     if (inv %in% c("acoustique_chiropteres_species", "acoustique_orthopteres", "acoustique_anoures")) {
-    #     LCBD.rich <- LCBD.comp(dissi_res_ls[[inv]]$rich, sqrt.D = TRUE) # prendre la racine carre car pas euclidienne & Significance of the LCBD indices cannot be tested (cf function help)
-    #     df_int <- data.frame(inv = inv, type = "richdiff", site_code = colnames(dissi_res_ls[[inv]]$rich), LCBD = LCBD.rich$LCBD)
-    #     richdiff_taxo <- rbind(richdiff_taxo, df_int)
-    # } else {
-    #     LCBD.repl <- LCBD.comp(dissi_res_ls[[inv]]$repl, sqrt.D = TRUE) # prendre la racine carre car pas euclidienne & Significance of the LCBD indices cannot be tested (cf function help)
-    #     df_int <- data.frame(inv = inv, type = "repl", site_code = colnames(dissi_res_ls[[inv]]$repl), LCBD = LCBD.repl$LCBD)
-    #     rempl_taxo <- rbind(rempl_taxo, df_int)
-    # }
 }
 
-
 lcbd_dissi <- left_join(lcbd_dissi, sites[, c("site_code", "lat", "lon")], by = join_by(site_code))
-# richdiff_taxo <- left_join(richdiff_taxo, sites[, c("site_code", "lat", "lon")], by = join_by(site_code))
-# rempl_taxo <- left_join(rempl_taxo, sites[, c("site_code", "lat", "lon")], by = join_by(site_code))
-
 lcbd_dissi_sf <- st_as_sf(lcbd_dissi, coords = c("lon", "lat"), crs = st_crs(4326))
-# richdiff_taxo_sf <- st_as_sf(richdiff_taxo, coords = c("lon", "lat"), crs = st_crs(4326))
-# rempl_taxo_sf <- st_as_sf(rempl_taxo, coords = c("lon", "lat"), crs = st_crs(4326))
 
+# data - lcbd - habitat
+# dissi_res_hab_ls <- list()
+# for (i in 1:length(taxon)) {
+#     inv <- taxon[i]
+#     mat <- mat_hab_ls[[inv]]
+#     habitats <- names(mat)
+#     dissi_hab_ls <- list()
+
+#     for(h in 1:length(habitats)){
+#         hab <- habitats[h]
+#         matm_hab <- mat[[hab]]$matrix
+#         bt_hab <- beta.div.comp(matm_hab, coef = "J", quant = FALSE) # utilisation de l'indice de Jaccard (coef = "J") car donnees de pres/abs
+#         bt_hab$inventaire <- inv
+#         bt_hab$habitat <- hab
+#         dissi_hab_ls[[h]] <- bt_hab
+#         }
+#     names(dissi_hab_ls) <- habitats
+#     dissi_res_hab_ls[[i]] <- dissi_hab_ls    
+#     }
+
+# names(dissi_res_hab_ls) <- taxon
+
+# # ----- #
+# lcbd_dissi_hab <- data.frame()
+
+# for (i in 1:length(taxon)) {
+#     inv <- taxon[i]
+#     print(inv)
+#     habitats <- names(dissi_res_hab_ls[[inv]])
+    
+#     for(h in 1:length(habitats)){
+        
+#     }
+
+#     beta <- beta_ls[[inv]][["beta_jaccard"]]
+#     beta_df <- data.frame(
+#         inv = inv,
+#         type = "LCBD_dissimilarite",
+#         site_code = names(beta$LCBD),
+#         LCBD = beta$LCBD,
+#         p.LCBD = beta$p.LCBD,
+#         p.adj = beta$p.adj
+#     )
+#     lcbd_dissi <- rbind(lcbd_dissi, beta_df)
+# }
+
+# lcbd_dissi <- left_join(lcbd_dissi, sites[, c("site_code", "lat", "lon")], by = join_by(site_code))
+# lcbd_dissi_sf <- st_as_sf(lcbd_dissi, coords = c("lon", "lat"), crs = st_crs(4326))
 
 # ---------- #
 # UI ----
@@ -283,16 +316,11 @@ server <- function(input, output) {
         remdiff <- beta.div.comp(matm, coef = "J", quant = FALSE)
         })
     # --- #
-    lcbd <- reactive({
-        if(input$habitat_select == "global"){
-            lcbd_dissi_sf[lcbd_dissi_sf$inv == input$taxon_select,]
 
-        } else if(input$taxon_select %in% c("acoustique_anoures", "acoustique_chiropteres_species", "acoustique_orthopteres")) {
-            richdiff_taxo_sf[richdiff_taxo_sf$inv == input$taxon_select,]
-        } else {
-            rempl_taxon_sf[rempl_taxon_sf$inv == input$taxon_select,]
-        }
-    })
+    # lcbd <- reactive({
+    #     # if(input$habitat_select == "global"){
+    #         lcbd_dissi_sf[lcbd_dissi_sf$inv == input$taxon_select,]
+    # })
 
   # Plot zone #
   # --------- #
@@ -403,6 +431,18 @@ server <- function(input, output) {
   # 1 - génération de la carte LCBDdissimilarité
     output$dissi_map <- renderPlot({
 
+            lcbd_repl <- LCBD.comp(remdiff()$repl, sqrt.D = TRUE) # prendre la racine carre car pas euclidienne & Significance of the LCBD indices cannot be tested (cf function help)
+            lcbd_richdiff <- LCBD.comp(remdiff()$rich, sqrt.D = TRUE)
+            sit <- colnames(remdiff()$repl)
+            df_int <- data.frame(
+                # inv = input$taxon_select,
+                # hab = input$habitat_select,
+                type = c(rep("repl", length(sit)), rep("richdiff", length(sit))),
+                site_code = rep(sit, 2),
+                LCBD = c(lcbd_repl$LCBD, lcbd_richdiff$LCBD))
+            df_int_sf <- left_join(df_int, sites[, c("site_code", "lat", "lon")], by = join_by(site_code)) |> st_as_sf(coords = c("lon", "lat"), crs = st_crs(4326))
+
+
             ggplot() +
             geom_sf(
                 data = qc3
@@ -411,13 +451,15 @@ server <- function(input, output) {
                 data = lakes_qc3,
                 fill = "white"
             ) +
-            geom_sf(data = lcbd(), aes(
+            geom_sf(data = df_int_sf, aes(
                 size = LCBD,
                 colour = "#2596be",
-                fill = "#2596be",
-                alpha = ifelse(p.adj <= 0.05, 1, 0.75)
+                # fill = "#2596be"
+                # ,
+                # alpha = ifelse(p.adj <= 0.05, 1, 0.75)
             )) +
-            labs(x = "Longitude", y = "Latitude") +
+            facet_wrap(vars(type)) +
+            # labs(x = "Longitude", y = "Latitude") +
             theme(
                 legend.position = "none",
                 strip.background = element_blank(),
@@ -447,3 +489,4 @@ server <- function(input, output) {
 
 # Run the application 
 shinyApp(ui = ui, server = server)
+
