@@ -47,23 +47,16 @@ taxon <- c(
 # colors
 colors <- c(
     "#2E483E", # "rgb(46,72,62)", # forestier
-    #   "#3E8986","rgb(62,137,134)", # lac
+    #"#3E8986","rgb(62,137,134)", # lac
     "#B05B22", # "rgb(176,91,34)", # marais
     "#EFB850", # "rgb(239,184,80)", # mil. hum. cotier
-    #   "#81C8C5", "rgb(129,200,197)", # riviere
+    #"#81C8C5", "rgb(129,200,197)", # riviere
     "#58776E", # "rgb(88,119,110)", # toundrique
     "#D88219" # "rgb(216,130,25)" # tourbiere
 )
-colorsRGB <- c(
-    rgb(46, 72, 62, 100, maxColorValue = 255), # forestier
-    # "rgb(62,137,134)", # lac
-    rgb(176, 91, 34, 100, maxColorValue = 255), # marais
-    rgb(239, 184, 80, 100, maxColorValue = 255), # mil. hum. cotier
-    #    "rgb(129,200,197)", # riviere
-    rgb(88, 119, 110, 100, maxColorValue = 255), # toundrique
-    rgb(216, 130, 25, 100, maxColorValue = 255) # tourbiere
-)
-cl_df <- data.frame(site_type = c("forestier", "marais", "milieu humide côtier", "toundrique", "tourbière"), col = colors, colRGB = colorsRGB)
+
+cl_df <- data.frame(site_type = c("forestier", "marais", "milieu humide côtier", "toundrique", "tourbière"), col = colors, col_pale = adjustcolor(colors, alpha.f = 0.5))
+cl_df <- rbind(cl_df, data.frame(site_type = "global", col = "#331bee", col_pale = adjustcolor("#331bee", alpha.f = 0.5)))
 
 # Several Polygons for Qc
 # -----------------------
@@ -230,14 +223,14 @@ ui <- navbarPage(
             # 1st column for plots
             column(5, 
                    # fluidRow for sales trend
-                   fluidRow(style = 'border: 1px solid lightgrey; border-radius: 25px; margin-left: 10px; padding-left: 10px;',
+                   fluidRow(style = 'border: 1px solid lightgrey; border-radius: 25px; margin-left: 10px; padding-left: 10px; height: 500px',
                             br(),
                             # sales trend title and info button
                             div(HTML('<b>Dissimilarité - Barplot</b> '), style = 'display: inline-block;'),
                             uiOutput('barplot_button', style = 'display: inline-block;'),
                             br(), br(),
                             # trend plot
-                            plotlyOutput('barplot', height = '175px')
+                            plotlyOutput('barplot')
                             ),
                    br(),
                    # fluidRow for bar plot
@@ -248,7 +241,7 @@ ui <- navbarPage(
                             uiOutput('triplot_button', style = 'display: inline-block;'),
                             br(), br(),
                             # bar plot
-                            plotOutput('triplot', height = '175px')
+                            plotOutput('triplot')
                             )
                    ),
             # 2nd column for map
@@ -399,9 +392,8 @@ server <- function(input, output) {
         ) +
         coord_flip() +
         scale_x_discrete(limits = the_order) +
-        scale_fill_manual(values = c(
-            "#a0a0a0", "#7a7a7a"
-        )) +
+        scale_fill_manual(values = c(cl_df$col[cl_df$site_type == input$habitat_select], cl_df$col_pale[cl_df$site_type == input$habitat_select])        
+        ) +
         ylab("Dissimilarité") +
         ylim(-1, 1) +
         xlab("Sites par latitude croissante") +
@@ -430,6 +422,7 @@ server <- function(input, output) {
   # ------- #
   # 1 - génération de la carte LCBDdissimilarité
     output$dissi_map <- renderPlot({
+    
 
             lcbd_repl <- LCBD.comp(remdiff()$repl, sqrt.D = TRUE) # prendre la racine carre car pas euclidienne & Significance of the LCBD indices cannot be tested (cf function help)
             lcbd_richdiff <- LCBD.comp(remdiff()$rich, sqrt.D = TRUE)
@@ -437,27 +430,25 @@ server <- function(input, output) {
             df_int <- data.frame(
                 # inv = input$taxon_select,
                 # hab = input$habitat_select,
-                type = c(rep("repl", length(sit)), rep("richdiff", length(sit))),
+type = c(rep("repl", length(sit)), rep("richdiff", length(sit))),
                 site_code = rep(sit, 2),
                 LCBD = c(lcbd_repl$LCBD, lcbd_richdiff$LCBD))
             df_int_sf <- left_join(df_int, sites[, c("site_code", "lat", "lon")], by = join_by(site_code)) |> st_as_sf(coords = c("lon", "lat"), crs = st_crs(4326))
-
 
             ggplot() +
             geom_sf(
                 data = qc3
             ) +
             geom_sf(
-                data = lakes_qc3,
+                data = lakes_qc3, 
                 fill = "white"
             ) +
             geom_sf(data = df_int_sf, aes(
                 size = LCBD,
-                colour = "#2596be",
-                # fill = "#2596be"
-                # ,
-                # alpha = ifelse(p.adj <= 0.05, 1, 0.75)
+                colour = type,
+                fill = type
             )) +
+            scale_color_manual(values = c(cl_df$col[cl_df$site_type == input$habitat_select], cl_df$col_pale[cl_df$site_type == input$habitat_select])) +
             facet_wrap(vars(type)) +
             # labs(x = "Longitude", y = "Latitude") +
             theme(
