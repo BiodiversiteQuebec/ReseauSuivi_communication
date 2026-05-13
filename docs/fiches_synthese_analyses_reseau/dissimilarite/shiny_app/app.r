@@ -131,7 +131,6 @@ lcbd_dissi_sf <- st_as_sf(lcbd_dissi, coords = c("lon", "lat"), crs = st_crs(432
 # ---------- #
 # UI ----
 # ----------#
-
 ui <- navbarPage(
     shinyWidgets::useShinydashboard(),
     title = "My App",
@@ -159,14 +158,42 @@ ui <- navbarPage(
                     width = 10,
                     # 1st fluid row for value boxes
                     fluidRow(
+                        # box 1
+                        box(
+                            title = div(
+                                tags$img(src = "https://avatars.githubusercontent.com/u/66145652?s=200&v=4", height = "30px", style = "margin-right: 10px;"),
+                                tags$b("Dissimilarité et groupes taxonomiques")
+                            ),
+                            width = 4,
+                            "Le niveau de dissimilarité entre les sites est variable en fonction des groupes taxonomiques."
+                        ),
+                        # box 2
+                        box(
+                            title = div(
+                                tags$img(src = "docs/fiches_synthese_analyses_reseau/dissimilarite/shiny_app/www/Logo_bq_sans_texte.png", height = "30px", style = "margin-right: 10px;"),
+                                tags$b("Mécanismes opérants")
+                            ),
+                            width = 4,
+                            "La force des mécanismes soujacents à la dissimilarité des sites est différente selon les groupes taxonomiques."
+                        ),
+                    ),
+                    # box 3
+                    box(
+                        title = div(
+                            tags$img(src = "Logo_bq_sans_texte.png", height = "30px", style = "margin-right: 10px;"),
+                            tags$b("Sites originaux")
+                        ),
+                        width = 4,
+                        "Certains sites semblent présenter une contribution particulière quant à la différence en richesse spécifique pour les chiroptères, orthoptères et les insectes su sol."
+
                         # Value Box 1
-                        valueBoxOutput(outputId = "message_1", width = 4),
+                        # valueBoxOutput(outputId = "message_1", width = 4),
 
                         # Value Box 2
-                        valueBoxOutput(outputId = "message_2", width = 4),
+                        # valueBoxOutput(outputId = "message_2", width = 4),
 
                         # Value Box 3
-                        valueBoxOutput(outputId = "message_3", width = 4)
+                        # valueBoxOutput(outputId = "message_3", width = 4)
                     ),
                     br(),
                     hr(),
@@ -233,21 +260,48 @@ server <- function(input, output) {
 
     # Box zone #
     # ------ #
+    # first box content
+    # output$my_image <- renderUI({
+    #     tags$img(src = "https://avatars.githubusercontent.com/u/66145652?s=200&v=4", height = "50px")
+    # })
+
+    # output$my_text <- renderUI({
+    #     HTML(<img src="https://avatars.githubusercontent.com/u/66145652?s=200&v=4" > "Le niveau de dissimilarité entre les sites est variable en fonction des groupes taxonomiques.")
+    # })
+
+    # second box content
+    # output$my_image2 <- renderUI({
+    #     tags$img(src = "https://www.r-project.org/logo/Rlogo.png", width = "250px")
+    # })
+
+    # output$my_text2 <- renderUI({
+    #     HTML("La force des mécanismes soujacents à la dissimilarité des sites est différente selon les groupes taxonomiques.")
+    # })
+
+    # third box content
+    # output$my_image3 <- renderUI({
+    #     tags$img(src = "https://www.r-project.org/logo/Rlogo.png", width = "250px")
+    # })
+
+    # output$my_text3 <- renderUI({
+    #     HTML("Certains sites semblent présenter une contribution particulière quant à la différence en richesse spécifique pour les chiroptères, orthoptères et les insectes su sol.")
+    # })
+
     # Box 1
-    output$message_1 <- shinydashboard::renderValueBox({
-        tags$style(".small-box.bg-yellow { background-color: #AABBCC !important; }")
-        valueBox(5, "Message 1", color = "yellow")
-    })
+    # output$message_1 <- shinydashboard::renderValueBox({
+    #     tags$style(".small-box.bg-yellow { background-color: #AABBCC !important; }")
+    #     valueBox(5, "Message 1", color = "yellow")
+    # })
 
     # Box 2
-    output$message_2 <- renderValueBox({
-        valueBox(10, "Message 2", color = "#e0b658")
-    })
+    # output$message_2 <- renderValueBox({
+    #     valueBox(10, "Message 2", color = "#e0b658")
+    # })
 
     # Box 3
-    output$message_3 <- renderValueBox({
-        valueBox(15, "Message 3", color = "#e0b658")
-    })
+    # output$message_3 <- renderValueBox({
+    #     valueBox(15, "Message 3", color = "#e0b658")
+    # })
 
     # Interactive data zone #
     # --------------------- #
@@ -292,7 +346,6 @@ server <- function(input, output) {
                 size = 10,
                 line = list(
                     "width" = 1,
-                    # color = cl_df$col[cl_df$site_type == input$habitat_select]
                     color = "black"
                 )
             )
@@ -347,8 +400,9 @@ server <- function(input, output) {
                 x = site_code,
                 y = value,
                 group = indice,
-                fill = indice,
-                text = sprintf("code site: %s<br>Latitude: %s<br>%s: %s", site_code, lat, ifelse(indice == "remplacement", "Remplacement", "Différence"), abs(value))
+                fill = indice
+                # ,
+                # text = sprintf("code site: %s<br>Latitude: %s<br>%s: %s", site_code, lat, ifelse(indice == "remplacement", "Remplacement", "Différence"), abs(value))
             )) +
             geom_bar(
                 stat = "identity"
@@ -369,7 +423,7 @@ server <- function(input, output) {
                 legend.position = "none",
                 panel.background = element_rect(fill = "white")
             )
-        ggplotly(p, tooltip = c("text")) %>%
+        ggplotly(p, tooltip = "text") %>%
             plotly::layout(
                 legend = list(
                     x = 0.3,
