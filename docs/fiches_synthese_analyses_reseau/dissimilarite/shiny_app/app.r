@@ -138,113 +138,101 @@ ui <- navbarPage(
         "Dissimilarité des sites",
         icon = icon("home"),
         fluidPage(
-            sidebarLayout(
-                sidebarPanel(
-                    width = 2,
-                    h4("Groupe taxonomique"),
-                    selectInput("taxon_select",
-                        label = "",
-                        choices = taxon
+            mainPanel(
+                width = 12,
+                # 1st fluid row for value boxes
+                fluidRow(
+                    # box 1
+                    box(
+                        title = div(
+                            tags$img(src = "https://github.com/BiodiversiteQuebec/ReseauSuivi_communication/blob/main/docs/fiches_synthese_analyses_reseau/dissimilarite/shiny_app/www/Logo_bq_sans_texte.png?raw=true", height = "30px", style = "margin-right: 10px;"),
+                            tags$b("Dissimilarité et groupes taxonomiques")
+                        ),
+                        width = 4,
+                        "Le niveau de dissimilarité entre les sites est variable en fonction des groupes taxonomiques."
                     ),
-                    h4("Habitat"),
-                    uiOutput("habitat",
-                        label = ""
-                    ) # associated to renderUI in server section
-                    ,
-                    # create extra vertical space in sidebar (for illustration only)
-                    HTML(rep("<br>", 30))
-                ),
-                mainPanel(
-                    width = 10,
-                    # 1st fluid row for value boxes
-                    fluidRow(
-                        # box 1
-                        box(
-                            title = div(
-                                tags$img(src = "https://avatars.githubusercontent.com/u/66145652?s=200&v=4", height = "30px", style = "margin-right: 10px;"),
-                                tags$b("Dissimilarité et groupes taxonomiques")
-                            ),
-                            width = 4,
-                            "Le niveau de dissimilarité entre les sites est variable en fonction des groupes taxonomiques."
+                    # box 2
+                    box(
+                        title = div(
+                            tags$img(src = "https://github.com/BiodiversiteQuebec/ReseauSuivi_communication/blob/main/docs/fiches_synthese_analyses_reseau/dissimilarite/shiny_app/www/Logo_bq_sans_texte.png?raw=true", height = "30px", style = "margin-right: 10px;"),
+                            tags$b("Mécanismes opérants")
                         ),
-                        # box 2
-                        box(
-                            title = div(
-                                tags$img(src = "docs/fiches_synthese_analyses_reseau/dissimilarite/shiny_app/www/Logo_bq_sans_texte.png", height = "30px", style = "margin-right: 10px;"),
-                                tags$b("Mécanismes opérants")
-                            ),
-                            width = 4,
-                            "La force des mécanismes soujacents à la dissimilarité des sites est différente selon les groupes taxonomiques."
-                        ),
+                        width = 4,
+                        "La force des mécanismes soujacents à la dissimilarité des sites est différente selon les groupes taxonomiques."
                     ),
                     # box 3
                     box(
                         title = div(
-                            tags$img(src = "Logo_bq_sans_texte.png", height = "30px", style = "margin-right: 10px;"),
+                            tags$img(src = "https://github.com/BiodiversiteQuebec/ReseauSuivi_communication/blob/main/docs/fiches_synthese_analyses_reseau/dissimilarite/shiny_app/www/Logo_bq_sans_texte.png?raw=true", height = "30px", style = "margin-right: 10px;"),
                             tags$b("Sites originaux")
                         ),
                         width = 4,
                         "Certains sites semblent présenter une contribution particulière quant à la différence en richesse spécifique pour les chiroptères, orthoptères et les insectes su sol."
-
-                        # Value Box 1
-                        # valueBoxOutput(outputId = "message_1", width = 4),
-
-                        # Value Box 2
-                        # valueBoxOutput(outputId = "message_2", width = 4),
-
-                        # Value Box 3
-                        # valueBoxOutput(outputId = "message_3", width = 4)
                     ),
-                    br(),
-                    hr(),
-
-                    # 2nd fluid row for map and plots
-                    fluidRow(
-
-                        # 1st column for plots
-                        column(
-                            5,
-                            # fluidRow for sales trend
-                            fluidRow(
-                                style = "border: 1px solid lightgrey; border-radius: 25px; margin-left: 10px; padding-left: 10px; height: 500px",
-                                br(),
-                                # sales trend title and info button
-                                div(HTML("<b>Dissimilarité - Barplot</b> "), style = "display: inline-block;"),
-                                uiOutput("barplot_button", style = "display: inline-block;"),
-                                br(), br(),
-                                # trend plot
-                                plotlyOutput("barplot", height = "400px")
-                            ),
-                            br(),
-                            # fluidRow for bar plot
-                            fluidRow(
-                                style = "border: 1px solid lightgrey; border-radius: 25px; margin-left: 10px; padding-left: 10px; height: 500px",
-                                br(),
-                                # bar plot title and info button
-                                div(HTML("<b>Triplot</b> "), style = "display: inline-block;"),
-                                uiOutput("triplot_button", style = "display: inline-block;"),
-                                br(), br(),
-                                # bar plot
-                                plotlyOutput("triplot", height = "400px")
-                            )
-                        ),
-                        # 2nd column for map
-                        column(7,
-                            style = "border: 1px solid lightgrey; border-radius: 25px; height: 900px",
-                            br(),
-                            # ntitle and info button
-                            div(HTML("<b>Carte de contribution locale</b> "), style = "display: inline-block;"),
-                            uiOutput("map_button", style = "display: inline-block;"),
-                            br(), br(),
-                            # map plot
-                            plotlyOutput("dissi_map", height = "700px"),
-                            br(), br(), br()
-                        ),
+                ),
+                # second row for dataselection
+                fluidRow(
+                    box(
+                        title = "Groupe taxonomique",
+                        selectInput("taxon_select",
+                            label = "",
+                            choices = taxon
+                        )
+                    ),
+                    box(
+                        title = "Habitat",
+                        uiOutput("habitat",
+                            label = ""
+                        ) # associated to renderUI in server section
                     )
+                ),
+                # third fluid row for map and plots
+                fluidRow(
+
+                    # 1st column for plots
+                    column(
+                        6,
+                        # fluidRow for sales trend
+                        fluidRow(
+                            style = "border: 1px solid lightgrey; border-radius: 25px; margin-left: 10px; padding-left: 10px; height: 500px",
+                            br(),
+                            # sales trend title and info button
+                            div(HTML("<b>Dissimilarité - Barplot</b> "), style = "display: inline-block;"),
+                            uiOutput("barplot_button", style = "display: inline-block;"),
+                            br(), br(),
+                            # trend plot
+                            plotlyOutput("barplot", height = "400px")
+                        ),
+                        br(),
+                        # fluidRow for bar plot
+                        fluidRow(
+                            style = "border: 1px solid lightgrey; border-radius: 25px; margin-left: 10px; padding-left: 10px; height: 500px",
+                            br(),
+                            # bar plot title and info button
+                            div(HTML("<b>Triplot</b> "), style = "display: inline-block;"),
+                            uiOutput("triplot_button", style = "display: inline-block;"),
+                            br(), br(),
+                            # bar plot
+                            plotlyOutput("triplot", height = "400px")
+                        )
+                    ),
+                    # 2nd column for map
+                    column(6,
+                        style = "border: 1px solid lightgrey; border-radius: 25px; height: 900px",
+                        br(),
+                        # ntitle and info button
+                        div(HTML("<b>Carte de contribution locale</b> "), style = "display: inline-block;"),
+                        uiOutput("map_button", style = "display: inline-block;"),
+                        br(), br(),
+                        # map plot
+                        plotlyOutput("dissi_map", height = "700px"),
+                        br(), br(), br()
+                    ),
                 )
             )
         )
     )
+    # )
 )
 
 # Server ----
@@ -257,51 +245,6 @@ server <- function(input, output) {
             choices = c("global", sapply(strsplit(n, "-"), `[`, 2))
         )
     })
-
-    # Box zone #
-    # ------ #
-    # first box content
-    # output$my_image <- renderUI({
-    #     tags$img(src = "https://avatars.githubusercontent.com/u/66145652?s=200&v=4", height = "50px")
-    # })
-
-    # output$my_text <- renderUI({
-    #     HTML(<img src="https://avatars.githubusercontent.com/u/66145652?s=200&v=4" > "Le niveau de dissimilarité entre les sites est variable en fonction des groupes taxonomiques.")
-    # })
-
-    # second box content
-    # output$my_image2 <- renderUI({
-    #     tags$img(src = "https://www.r-project.org/logo/Rlogo.png", width = "250px")
-    # })
-
-    # output$my_text2 <- renderUI({
-    #     HTML("La force des mécanismes soujacents à la dissimilarité des sites est différente selon les groupes taxonomiques.")
-    # })
-
-    # third box content
-    # output$my_image3 <- renderUI({
-    #     tags$img(src = "https://www.r-project.org/logo/Rlogo.png", width = "250px")
-    # })
-
-    # output$my_text3 <- renderUI({
-    #     HTML("Certains sites semblent présenter une contribution particulière quant à la différence en richesse spécifique pour les chiroptères, orthoptères et les insectes su sol.")
-    # })
-
-    # Box 1
-    # output$message_1 <- shinydashboard::renderValueBox({
-    #     tags$style(".small-box.bg-yellow { background-color: #AABBCC !important; }")
-    #     valueBox(5, "Message 1", color = "yellow")
-    # })
-
-    # Box 2
-    # output$message_2 <- renderValueBox({
-    #     valueBox(10, "Message 2", color = "#e0b658")
-    # })
-
-    # Box 3
-    # output$message_3 <- renderValueBox({
-    #     valueBox(15, "Message 3", color = "#e0b658")
-    # })
 
     # Interactive data zone #
     # --------------------- #
@@ -400,13 +343,11 @@ server <- function(input, output) {
                 x = site_code,
                 y = value,
                 group = indice,
-                fill = indice
-                # ,
-                # text = sprintf("code site: %s<br>Latitude: %s<br>%s: %s", site_code, lat, ifelse(indice == "remplacement", "Remplacement", "Différence"), abs(value))
+                fill = indice,
+                text = sprintf("code site: %s<br>Latitude: %s<br>%s: %s", site_code, lat, ifelse(indice == "remplacement", "Remplacement", "Différence"), abs(value))
             )) +
             geom_bar(
                 stat = "identity"
-                # , width = 0.75
             ) +
             coord_flip() +
             scale_x_discrete(limits = the_order) +
@@ -443,8 +384,6 @@ server <- function(input, output) {
         lcbd_richdiff <- LCBD.comp(remdiff()$rich, sqrt.D = TRUE)
         sit <- names(remdiff()$D)
         df_int <- data.frame(
-            # inv = input$taxon_select,
-            # hab = input$habitat_select,
             type = c(rep("repl", length(sit)), rep("richdiff", length(sit))),
             site_code = rep(sit, 2),
             LCBD = c(lcbd_repl$LCBD, lcbd_richdiff$LCBD)
@@ -497,7 +436,7 @@ server <- function(input, output) {
     })
     # map button
     output$map_button <- renderUI({
-        actionButton("MapButton", NULL, icon = icon("info"), style = "border-radius: 50%;")
+        actionButton("MapButton", label = "test micro", icon = icon("info"), style = "border-radius: 50%;")
     })
 }
 
