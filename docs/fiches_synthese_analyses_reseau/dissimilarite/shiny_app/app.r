@@ -9,6 +9,7 @@ library(sf)
 library(rmapshaper)
 library(vegan)
 library(adespatial)
+library(shinyalert)
 # Data
 #### Local data ####
 # ---------------- #
@@ -136,7 +137,8 @@ ui <- navbarPage(
     title = "My App",
     tabPanel(
         "Dissimilarité des sites",
-        icon = icon("home"),
+        # icon = icon("home"),
+        icon = tags$img(src = "https://png.pngtree.com/element_our/20200702/ourmid/pngtree-construction-sign-psd-transparent-bottom-image_2292003.jpg", height = "30px"),
         fluidPage(
             mainPanel(
                 width = 12,
@@ -188,52 +190,70 @@ ui <- navbarPage(
                 ),
                 # third fluid row for map and plots
                 fluidRow(
-
                     # 1st column for plots
                     column(
                         6,
-                        # fluidRow for sales trend
+                        # fluidRow for barplot
                         fluidRow(
-                            style = "border: 1px solid lightgrey; border-radius: 25px; margin-left: 10px; padding-left: 10px; height: 500px",
-                            br(),
-                            # sales trend title and info button
-                            div(HTML("<b>Dissimilarité - Barplot</b> "), style = "display: inline-block;"),
-                            uiOutput("barplot_button", style = "display: inline-block;"),
-                            br(), br(),
-                            # trend plot
-                            plotlyOutput("barplot", height = "400px")
+                            # style = "border: 1px solid lightgrey; border-radius: 25px; margin-left: 10px; padding-left: 10px; height: 500px",
+                            # br(),
+                            # # title and info button
+                            # div(HTML("<b>Dissimilarité - Barplot</b> "), style = "display: inline-block;"),
+                            # actionButton("info_btn", label = "", icon = icon("info"), style = "display: inline-block;"),
+                            # br(), br(),
+                            # # trend plot
+                            # plotlyOutput("barplot", height = "400px")
+                            box(
+                                width = 12,
+                                div(HTML("<b>Dissimilarité - Barplot</b> "), style = "display: inline-block;"),
+                                actionButton("info_btn", label = "", icon = icon("info"), style = "display: inline-block;"),
+                                plotlyOutput("barplot", height = "400px")
+                            )
                         ),
                         br(),
                         # fluidRow for bar plot
                         fluidRow(
-                            style = "border: 1px solid lightgrey; border-radius: 25px; margin-left: 10px; padding-left: 10px; height: 500px",
-                            br(),
-                            # bar plot title and info button
-                            div(HTML("<b>Triplot</b> "), style = "display: inline-block;"),
-                            uiOutput("triplot_button", style = "display: inline-block;"),
-                            br(), br(),
-                            # bar plot
-                            plotlyOutput("triplot", height = "400px")
+                            # style = "border: 1px solid lightgrey; border-radius: 25px; margin-left: 10px; padding-left: 10px; height: 500px",
+                            # br(),
+                            # # bar plot title and info button
+                            # div(HTML("<b>Triplot</b> "), style = "display: inline-block;"),
+                            # actionButton("triplot_button", label = "", icon = icon("info"), style = "display: inline-block;"),
+                            # br(), br(),
+                            # # bar plot
+                            # plotlyOutput("triplot", height = "400px")
+                            box(
+                                width = 12,
+                                div(HTML("<b>Triplot</b> "), style = "display: inline-block;"),
+                                actionButton("triplot_button", label = "", icon = icon("info"), style = "display: inline-block;"),
+                                plotlyOutput("triplot", height = "400px")
+                            )
                         )
                     ),
                     # 2nd column for map
-                    column(6,
-                        style = "border: 1px solid lightgrey; border-radius: 25px; height: 900px",
-                        br(),
-                        # ntitle and info button
-                        div(HTML("<b>Carte de contribution locale</b> "), style = "display: inline-block;"),
-                        uiOutput("map_button", style = "display: inline-block;"),
-                        br(), br(),
-                        # map plot
-                        plotlyOutput("dissi_map", height = "700px"),
-                        br(), br(), br()
-                    ),
+                    column(
+                        6,
+                        # style = "border: 1px solid lightgrey; border-radius: 25px; height: 900px",
+                        # br(),
+                        # # ntitle and info button
+                        # div(HTML("<b>Carte de contribution locale</b> "), style = "display: inline-block;"),
+                        # actionButton("map_button", label = "", icon = icon("info"), style = "display: inline-block;"),
+                        # br(), br(),
+                        # # map plot
+                        # plotlyOutput("dissi_map", height = "700px"),
+                        # br(), br(), br()
+                        box(
+                            width = 12,
+                            div(HTML("<b>Carte de contribution locale</b> "), style = "display: inline-block;"),
+                            actionButton("map_button", label = "", icon = icon("info"), style = "display: inline-block;"),
+                            plotlyOutput("dissi_map", height = "900px")
+                        )
+                    )
                 )
             )
         )
     )
-    # )
 )
+
 
 # Server ----
 server <- function(input, output) {
@@ -427,16 +447,67 @@ server <- function(input, output) {
     # Button zone #
     # ----------- #
     # barplot button
-    output$barplot_button <- renderUI({
-        actionButton("BarplotButton", NULL, icon = icon("info"), style = "border-radius: 50%;")
+    observeEvent(input$info_btn, {
+        shinyalert(
+            title = "Méthodologie & interprétations",
+            text = "This is a modal",
+            size = "l",
+            closeOnEsc = TRUE,
+            closeOnClickOutside = TRUE,
+            html = FALSE,
+            type = "",
+            showConfirmButton = TRUE,
+            showCancelButton = FALSE,
+            confirmButtonText = "OK",
+            confirmButtonCol = "#E0B658",
+            timer = 0,
+            imageUrl = "https://github.com/BiodiversiteQuebec/ReseauSuivi_communication/blob/main/docs/fiches_synthese_analyses_reseau/dissimilarite/shiny_app/www/Logo_bq_sans_texte.png?raw=true",
+            imageWidth = 100,
+            imageHeight = 100,
+            animation = FALSE
+        )
     })
     # triplot button
-    output$triplot_button <- renderUI({
-        actionButton("TriplotButton", NULL, icon = icon("info"), style = "border-radius: 50%;")
+    observeEvent(input$triplot_button, {
+        shinyalert(
+            title = "Méthodologie & interprétations",
+            text = "This is a modal",
+            size = "l",
+            closeOnEsc = TRUE,
+            closeOnClickOutside = TRUE,
+            html = FALSE,
+            type = "",
+            showConfirmButton = TRUE,
+            showCancelButton = FALSE,
+            confirmButtonText = "OK",
+            confirmButtonCol = "#E0B658",
+            timer = 0,
+            imageUrl = "https://github.com/BiodiversiteQuebec/ReseauSuivi_communication/blob/main/docs/fiches_synthese_analyses_reseau/dissimilarite/shiny_app/www/Logo_bq_sans_texte.png?raw=true",
+            imageWidth = 100,
+            imageHeight = 100,
+            animation = FALSE
+        )
     })
     # map button
-    output$map_button <- renderUI({
-        actionButton("MapButton", label = "test micro", icon = icon("info"), style = "border-radius: 50%;")
+    observeEvent(input$map_button, {
+        shinyalert(
+            title = "Méthodologie & interprétations",
+            text = "This is a modal",
+            size = "l",
+            closeOnEsc = TRUE,
+            closeOnClickOutside = TRUE,
+            html = FALSE,
+            type = "",
+            showConfirmButton = TRUE,
+            showCancelButton = FALSE,
+            confirmButtonText = "OK",
+            confirmButtonCol = "#E0B658",
+            timer = 0,
+            imageUrl = "https://github.com/BiodiversiteQuebec/ReseauSuivi_communication/blob/main/docs/fiches_synthese_analyses_reseau/dissimilarite/shiny_app/www/Logo_bq_sans_texte.png?raw=true",
+            imageWidth = 100,
+            imageHeight = 100,
+            animation = FALSE
+        )
     })
 }
 
