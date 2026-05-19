@@ -322,8 +322,9 @@ server <- function(input, output) {
     observeEvent(input$info_btn, {
         shinyalert(
             title = "Méthodologie & interprétations",
-            text = div(HTML("Ce graphique présente 1) la valeur de dissimilarité pour chaque site et 2) la contribution des deux mécanismes responsables de cette dissimilarité. La valeur de dissimilarité peut nous aider à comprendre à quel point un site est original par rapport à tous les autres. Cette valeur est comprise entre 0 et 1. Plus celle-ci est proche de 0, plus le site en question présente une composition en espèces différente (originale) par rapport à celle retrouvée sur les autres sites. L'originalité d'un site peut être expliqé par plusieurs choses : la présence d'expèces rares, un nombre d'espèces présent sur le site très élevé ou au contraire, très faible.<br><br> La variation de la composition en espèces d'un site à l'autre peut être expliquée par deux mécanismes principaux : un remplacement des espèces le long d'un gradient ou une perte des espèces au fur et à mesure de ce gradient."), style = "text-align: left"),
-            size = "l",
+            text = div(HTML("Ce graphique présente deux niveaux d'informations. Tout d'abord, la longueur de chaque barre horizontale correspond à la dissimilarité du site par rapport aux autres. La valeur de dissimilarité peut nous aider à comprendre à quel point un site est original par rapport à tous les autres. Cette valeur est comprise entre 0 et 1. Plus celle-ci est proche de 1, plus le site en question présente une composition en espèces différente (originale) par rapport à celle retrouvée sur les autres sites. L'originalité d'un site peut être expliqée par plusieurs choses : la présence d'espèces rares, un nombre d'espèces différentes présentes sur le site très élevé ou au contraire, très faible.<br><br>
+            De plus, la variation du niveau d'originalité des sites les uns par rapport aux autres peut être expliquée par deux mécanismes complémentaires: un remplacement des espèces le long d'un gradient ou une perte des espèces au fur et à mesure de ce gradient. La contribution de chacun de ses mécanismes est représentée par la différence de couleur présente pour chacune des barres horizontales."), style = "text-align: left"),
+            size = "m",
             closeOnEsc = TRUE,
             closeOnClickOutside = TRUE,
             html = TRUE,
@@ -343,7 +344,7 @@ server <- function(input, output) {
     observeEvent(input$alpha_button, {
         shinyalert(
             title = "Méthodologie & interprétations",
-            text = "Cette carte représentre la diversité alpha pour le groupe taxonomique et l'habitat sélectionnés à chacun des sites inventoriés. Il s'agit d'un décompe des différentes espèces rencontrées lors des inventaires.",
+            text = "Cette carte représentre la diversité alpha à chacun des sites. Il s'agit d'un décompe des différentes espèces rencontrées lors des inventaires.",
             size = "m",
             closeOnEsc = TRUE,
             closeOnClickOutside = TRUE,
@@ -369,7 +370,7 @@ server <- function(input, output) {
                 tags$br(),
                 "Standard text follows."
             ),
-            size = "s",
+            size = "m",
             closeOnEsc = TRUE,
             closeOnClickOutside = TRUE,
             html = TRUE,
