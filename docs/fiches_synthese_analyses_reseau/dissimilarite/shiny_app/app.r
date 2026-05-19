@@ -67,9 +67,9 @@ ui <- navbarPage(
                         fluidRow(
                             box(
                                 width = 12,
-                                div(HTML("<b>Dissimilarité - Barplot</b> "), style = "display: inline-block;"),
-                                actionButton("info_btn", label = "", icon = icon("info"), style = "display: inline-block;"),
-                                plotlyOutput("barplot", height = "400px")
+                                div(HTML("<b>Diversité alpha</b> "), style = "display: inline-block;"),
+                                actionButton("alpha_button", label = "", icon = icon("info"), style = "display: inline-block;"),
+                                plotlyOutput("alpha_map", height = "400px")
                             )
                         ),
                         br(),
@@ -77,9 +77,9 @@ ui <- navbarPage(
                         fluidRow(
                             box(
                                 width = 12,
-                                div(HTML("<b>Diversité alpha</b> "), style = "display: inline-block;"),
-                                actionButton("alpha_button", label = "", icon = icon("info"), style = "display: inline-block;"),
-                                plotlyOutput("alpha_map", height = "400px")
+                                div(HTML("<b>Dissimilarité - Barplot</b> "), style = "display: inline-block;"),
+                                actionButton("info_btn", label = "", icon = icon("info"), style = "display: inline-block;"),
+                                plotlyOutput("barplot", height = "400px")
                             )
                         )
                     ),
@@ -153,15 +153,15 @@ server <- function(input, output) {
                 data = lakes_qc3,
                 fill = "white"
             ) +
-            geom_sf(data = data_sf, aes(
-                size = n_sp,
-                # shape = 21,
-                color = habitat,
-                fill = habitat,
-                text = text
-            )) +
-            scale_fill_manual(cl_df$col_pale[cl_df$site_type == input$habitat_select]) +
-            scale_color_manual(cl_df$col[cl_df$site_type == input$habitat_select]) +
+            geom_sf(
+                data = data_sf, aes(
+                    size = n_sp,
+                    text = text
+                ),
+                color = cl_df$col[cl_df$site_type == input$habitat_select],
+                fill = cl_df$col_pale[cl_df$site_type == input$habitat_select],
+                shape = 21
+            ) +
             theme(
                 legend.position = "none",
                 strip.background = element_blank(),
@@ -192,10 +192,33 @@ server <- function(input, output) {
                 round(dissi_sites, digits = 2)
             )
         )
-        dis_df <- left_join(dis_df, sites[, c("site_code", "lat")], by = join_by("site_code"))
+        dis_df_ls <- split(dis_df, dis_df$site_code)
+        dis_df_ls2 <- lapply(dis_df_ls, function(x) {
+            x$prop <- round((x$value * 100) / x$value[x$indice == "dissimilarity"], digits = 1)
 
-        dis_df <- dis_df |> arrange(lat)
-        dis_df2 <- dis_df[dis_df$indice %in% c("remplacement", "difference"), ]
+            x |> mutate()
+            x
+        })
+        dis_df <- do.call("rbind", dis_df_ls2)
+        dis_dff <- left_join(dis_df, sites[, c("site_code", "lat")], by = join_by("site_code"))
+
+        dis_dfff <- dis_dff |>
+            arrange(lat)
+        dissi <- dis_df[dis_df$indice == "dissimilarity", c("site_code", "value")]
+        names(dissi)[2] <- "dissimilarite"
+        dis_df2 <- dis_dfff[dis_dfff$indice %in% c("remplacement", "difference"), ] |>
+            left_join(dissi, by = join_by(site_code)) |>
+            mutate(
+                text =
+                    sprintf(
+                        "code site: %s<br>Latitude: %s<br>Dissimilarité totale: %s<br>%s: %s%%",
+                        site_code,
+                        lat,
+                        dissimilarite,
+                        ifelse(indice == "remplacement", "Remplacement", "Différence"),
+                        prop
+                    )
+            )
 
         dis_df3 <- dis_df2 |>
             mutate(value = ifelse(indice == "difference", -value, value))
@@ -213,7 +236,7 @@ server <- function(input, output) {
                 y = value,
                 group = indice,
                 fill = indice,
-                text = sprintf("code site: %s<br>Latitude: %s<br>%s: %s", site_code, lat, ifelse(indice == "remplacement", "Remplacement", "Différence"), abs(value))
+                text = text
             )) +
             geom_bar(
                 stat = "identity"
@@ -251,7 +274,7 @@ server <- function(input, output) {
     output$dissi_map <- renderPlotly({
         lcbd_repl <- LCBD.comp(remdiff()$repl, sqrt.D = TRUE) # prendre la racine carre car pas euclidienne & Significance of the LCBD indices cannot be tested (cf function help)
         lcbd_richdiff <- LCBD.comp(remdiff()$rich, sqrt.D = TRUE)
-        sit <- names(remdiff()$D)
+        sit <- names(remdiff()$D)[[1]]
         df_int <- data.frame(
             type = c(rep("repl", length(sit)), rep("richdiff", length(sit))),
             site_code = rep(sit, 2),
@@ -287,7 +310,7 @@ server <- function(input, output) {
                 legend.position = "none",
                 strip.background = element_blank(),
                 strip.text.x = element_blank(),
-                text = element_text(size = 20),
+                text = element_text(size = 10),
                 panel.background = element_rect(fill = "transparent", color = "transparent"),
             )
         ggplotly(p_map, tooltip = "text")
@@ -299,11 +322,11 @@ server <- function(input, output) {
     observeEvent(input$info_btn, {
         shinyalert(
             title = "Méthodologie & interprétations",
-            text = "This is a modal",
+            text = div(HTML("Ce graphique présente 1) la valeur de dissimilarité pour chaque site et 2) la contribution des deux mécanismes responsables de cette dissimilarité. La valeur de dissimilarité peut nous aider à comprendre à quel point un site est original par rapport à tous les autres. Cette valeur est comprise entre 0 et 1. Plus celle-ci est proche de 0, plus le site en question présente une composition en espèces différente (originale) par rapport à celle retrouvée sur les autres sites. L'originalité d'un site peut être expliqé par plusieurs choses : la présence d'expèces rares, un nombre d'espèces présent sur le site très élevé ou au contraire, très faible.<br><br> La variation de la composition en espèces d'un site à l'autre peut être expliquée par deux mécanismes principaux : un remplacement des espèces le long d'un gradient ou une perte des espèces au fur et à mesure de ce gradient."), style = "text-align: left"),
             size = "l",
             closeOnEsc = TRUE,
             closeOnClickOutside = TRUE,
-            html = FALSE,
+            html = TRUE,
             type = "",
             showConfirmButton = TRUE,
             showCancelButton = FALSE,
@@ -316,15 +339,15 @@ server <- function(input, output) {
             animation = FALSE
         )
     })
-    # triplot button
+    # alpha_map button
     observeEvent(input$alpha_button, {
         shinyalert(
             title = "Méthodologie & interprétations",
-            text = "This is a modal",
-            size = "l",
+            text = "Cette carte représentre la diversité alpha pour le groupe taxonomique et l'habitat sélectionnés à chacun des sites inventoriés. Il s'agit d'un décompe des différentes espèces rencontrées lors des inventaires.",
+            size = "m",
             closeOnEsc = TRUE,
             closeOnClickOutside = TRUE,
-            html = FALSE,
+            html = TRUE,
             type = "",
             showConfirmButton = TRUE,
             showCancelButton = FALSE,
@@ -341,11 +364,15 @@ server <- function(input, output) {
     observeEvent(input$map_button, {
         shinyalert(
             title = "Méthodologie & interprétations",
-            text = "This is a modal",
-            size = "l",
+            text = tagList(
+                tags$span(style = "color: red;", "Red Text"),
+                tags$br(),
+                "Standard text follows."
+            ),
+            size = "s",
             closeOnEsc = TRUE,
             closeOnClickOutside = TRUE,
-            html = FALSE,
+            html = TRUE,
             type = "",
             showConfirmButton = TRUE,
             showCancelButton = FALSE,
