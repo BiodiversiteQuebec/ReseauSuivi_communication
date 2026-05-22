@@ -1,4 +1,5 @@
 # source("docs/fiches_synthese_analyses_reseau/dissimilarite/shiny_app/data_prep.r")
+source("docs/fiches_synthese_analyses_reseau/dissimilarite/shiny_app/data_prep.r")
 # ---------- #
 # UI ----
 # ----------#
