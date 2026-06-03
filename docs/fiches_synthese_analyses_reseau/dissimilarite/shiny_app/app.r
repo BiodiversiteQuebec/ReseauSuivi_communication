@@ -139,7 +139,9 @@ server <- function(input, output) {
         }
 
         data_sf <-
-            left_join(data, sites[, c("site_code", "lat", "lon")], by = join_by(site_code)) |>
+            # left_join(data, sites[, c("site_code", "lat", "lon")], by = join_by(site_code)) |>
+            stringdist_left_join(data, sites[, c("site_code", "lat", "lon")], by = c("site_code" = "site_code"), max_dist = 1) |>
+            rename(site_code = site_code.x) |>
             st_as_sf(coords = c("lon", "lat"), crs = st_crs(4326)) |>
             mutate(text = paste(
                 "Code site: ", site_code,
@@ -201,7 +203,8 @@ server <- function(input, output) {
             x
         })
         dis_df <- do.call("rbind", dis_df_ls2)
-        dis_dff <- left_join(dis_df, sites[, c("site_code", "lat")], by = join_by("site_code"))
+        # dis_dff <- left_join(dis_df, sites[, c("site_code", "lat")], by = join_by("site_code"))
+        dis_dff <- stringdist_left_join(dis_df, sites[, c("site_code", "lat", "lon")], by = c("site_code" = "site_code"), max_dist = 1) |> rename(site_code = site_code.x)
 
         dis_dfff <- dis_dff |>
             arrange(lat)
@@ -228,7 +231,7 @@ server <- function(input, output) {
             dis_df3 %>%
             filter(indice == "remplacement") %>%
             arrange(lat, decrease = F)
-        the_order <- temp_df$site_code
+        the_order <- unique(temp_df$site_code)
         dis_df3$site_code <- factor(dis_df3$site_code, the_order)
         p <-
             dis_df3 %>%
@@ -281,7 +284,10 @@ server <- function(input, output) {
             site_code = rep(sit, 2),
             LCBD = c(lcbd_repl$LCBD, lcbd_richdiff$LCBD)
         )
-        df_int_sf <- left_join(df_int, sites[, c("site_code", "lat", "lon")], by = join_by(site_code)) |> st_as_sf(coords = c("lon", "lat"), crs = st_crs(4326))
+        # df_int_sf <- left_join(df_int, sites[, c("site_code", "lat", "lon")], by = join_by(site_code)) |> st_as_sf(coords = c("lon", "lat"), crs = st_crs(4326))
+        df_int_sf <- stringdist_left_join(df_int, sites[, c("site_code", "lat", "lon")], by = c("site_code" = "site_code"), max_dist = 1) |>
+            st_as_sf(coords = c("lon", "lat"), crs = st_crs(4326)) |>
+            rename(site_code = site_code.x)
 
         df_int_sf <- df_int_sf |>
             mutate(text = paste(

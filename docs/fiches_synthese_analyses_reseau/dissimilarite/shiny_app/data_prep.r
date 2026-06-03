@@ -126,6 +126,8 @@ for (i in 1:length(taxon)) {
 names(dissi_res_ls) <- taxon
 
 # ----- #
+library(fuzzyjoin)
+
 lcbd_dissi <- data.frame()
 
 for (i in 1:length(taxon)) {
@@ -144,5 +146,7 @@ for (i in 1:length(taxon)) {
     lcbd_dissi <- rbind(lcbd_dissi, beta_df)
 }
 
-lcbd_dissi <- left_join(lcbd_dissi, sites[, c("site_code", "lat", "lon")], by = join_by(site_code))
+lcbd_dissi <- lcbd_dissi |> stringdist_left_join(sites[, c("site_code", "lat", "lon")], by = c("site_code" = "site_code"), max_dist = 1)
+# lcbd_dissi <- left_join(lcbd_dissi, sites[, c("site_code", "lat", "lon")], by = join_by(site_code))
+names(lcbd_dissi)[3] <- "site_code"
 lcbd_dissi_sf <- st_as_sf(lcbd_dissi, coords = c("lon", "lat"), crs = st_crs(4326))
