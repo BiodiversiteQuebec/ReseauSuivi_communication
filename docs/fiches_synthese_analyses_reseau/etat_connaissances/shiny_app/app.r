@@ -18,48 +18,55 @@ ui <- navbarPage(
                     # box 1
                     box(
                         title = div(
-                            tags$img(src = "https://github.com/BiodiversiteQuebec/ReseauSuivi_communication/blob/main/docs/fiches_synthese_analyses_reseau/etat_connaissance/shiny_app/www/Logo_bq_sans_texte.png?raw=true", height = "30px", style = "margin-right: 10px;"),
-                            tags$b("TITLE")
+                            tags$img(src = "https://github.com/BiodiversiteQuebec/ReseauSuivi_communication/blob/main/docs/fiches_synthese_analyses_reseau/etat_connaissances/shiny_app/www/Logo_bq_sans_texte.png?raw=true", height = "30px", style = "margin-right: 10px;"),
+                            tags$b("Représentativité")
                         ),
                         width = 4,
-                        "xxx"
+                        "Les protocoles mis en place par le Réseau de Suivi présente une excellente représentativité de la biodiversité du Québec à hauteur de 84.4%, tous groupes taxonomiques confondus."
                     ),
                     # box 2
                     box(
                         title = div(
-                            tags$img(src = "https://github.com/BiodiversiteQuebec/ReseauSuivi_communication/blob/main/docs/fiches_synthese_analyses_reseau/etat_connaissance/shiny_app/www/Logo_bq_sans_texte.png?raw=true", height = "30px", style = "margin-right: 10px;"),
-                            tags$b("TITLE")
+                            tags$img(src = "https://github.com/BiodiversiteQuebec/ReseauSuivi_communication/blob/main/docs/fiches_synthese_analyses_reseau/etat_connaissances/shiny_app/www/Logo_bq_sans_texte.png?raw=true", height = "30px", style = "margin-right: 10px;"),
+                            tags$b("Groupes taxonomiques gagnants vs perdants")
                         ),
                         width = 4,
-                        "xxx"
+                        "Les groupes taxonomiques les mieux représentés sont les chiroptères et les anoures, alors que les papillons et les insectes du sol présentent des inventaites moins exhaustifs. "
                     ),
                     # box 3
                     box(
                         title = div(
-                            tags$img(src = "https://github.com/BiodiversiteQuebec/ReseauSuivi_communication/blob/main/docs/fiches_synthese_analyses_reseau/etat_connaissance/shiny_app/www/Logo_bq_sans_texte.png?raw=true", height = "30px", style = "margin-right: 10px;"),
-                            tags$b("TITLE")
+                            tags$img(src = "https://github.com/BiodiversiteQuebec/ReseauSuivi_communication/blob/main/docs/fiches_synthese_analyses_reseau/etat_connaissances/shiny_app/www/Logo_bq_sans_texte.png?raw=true", height = "30px", style = "margin-right: 10px;"),
+                            tags$b("Où mettre plus d'efforts ?")
                         ),
                         width = 4,
-                        "xxx"
+                        "Certains sites en particuliers présentent un fort déficit dans leur niveau de représentativité de la biodiversité pour certains groupes taxonomiques."
                     ),
                 ),
                 # second row for dataselection & map visualisation on two columns
                 fluidRow(
                     column(
                         4,
-                        box(
+                        fluidRow(box(
+                            width = 12,
                             title = "Groupe taxonomique",
                             selectInput("taxon_select",
                                 label = "",
                                 choices = taxon
                             )
-                        ),
-                        box(
+                        )),
+                        fluidRow(box(
+                            width = 12,
                             title = "Habitat",
                             uiOutput("habitat",
                                 label = ""
                             ) # associated to renderUI in server section
-                        )
+                        )),
+                        fluidRow(box(
+                            width = 12,
+                            title = "",
+                            plotlyOutput("taxon_map", height = "600px")
+                        ))
                     ),
                     column(
                         8,
@@ -67,7 +74,7 @@ ui <- navbarPage(
                             width = 12,
                             div(HTML("<b>Carte de représentativité</b> "), style = "display: inline-block;"),
                             actionButton("map_button", label = "", icon = icon("info"), style = "display: inline-block;"),
-                            plotlyOutput("", height = "900px")
+                            plotlyOutput("map", height = "900px")
                         )
                     )
                 )
@@ -107,6 +114,37 @@ server <- function(input, output) {
 
     # Plot zone #
     # --------- #
+    # 0 - Génération de violin plot par groupe taxo
+    output$taxon_map <- renderPlotly({
+        v_plot <- sites_est |>
+            ggplot(aes(x = id, y = prop_obs, fill = type_campaign, colour = type_campaign)) +
+            geom_violin() +
+            scale_fill_manual(values = c("#242e8675", "#b881577d", "#88bcb985", "#e3bc6983", "#435a518d")) +
+            scale_colour_manual(values = c("#242e86", "#b88157", "#88bcb9", "#e3bd69", "#435a51")) +
+            geom_jitter(shape = 16, position = position_jitter(0.05), colour = "black", alpha = 0.5, cex = 2) +
+            labs(x = "", y = "") +
+            theme(
+                legend.position = "none",
+                # strip.background = element_blank(),
+                # strip.text.x = element_blank(),
+                text = element_text(size = 15),
+                panel.background = element_rect(fill = "transparent", color = "transparent")
+            ) +
+            ggimage::geom_image(
+                data = data.frame(id = 1:5, value = 105, type_campaign = unique(sites_est$type_campaign)),
+                aes(x = id, y = value, image = rev(c(
+                    "/home/local/USHERBROOKE/juhc3201/BdQc/ReseauSuivi/portail_pictograms/taxons/xxx-plant.png",
+                    "/home/local/USHERBROOKE/juhc3201/BdQc/ReseauSuivi/portail_pictograms/taxons/012-beetle.png",
+                    "/home/local/USHERBROOKE/juhc3201/BdQc/ReseauSuivi/portail_pictograms/taxons/020-bird.png",
+                    "/home/local/USHERBROOKE/juhc3201/BdQc/ReseauSuivi/portail_pictograms/taxons/xxx-ortho.png",
+                    "/home/local/USHERBROOKE/juhc3201/BdQc/ReseauSuivi/portail_pictograms/taxons/007-bat.png"
+                ))),
+                size = 1 / 15
+            )
+        # v_plot
+        v_plot2 <- ggplotly(v_plot)
+        v_final <- style(v_plot2, hoverinfo = "none", traces = 1)
+    })
 
     # 1 - génération de la carte de représentativite des inventaires
     output$map <- renderPlotly({
@@ -114,10 +152,11 @@ server <- function(input, output) {
             est() |>
             mutate(text = paste(
                 "Code site: ", code_site,
+                "\nTaxon: ", type_campaign,
                 "\nHabitat: ", type_site,
                 "\nNb espèces observées: ", sp_observed,
-                "\nNb espèces estimées: ", sp_estimator,
-                "\nReprésentativité: ", prop_obs, "%"
+                "\nNb espèces estimées: ", round(sp_estimator, digits = 0),
+                "\nReprésentativité: ", round(prop_obs, digits = 2), "%"
             ))
         p_map <- ggplot() +
             geom_sf(
@@ -130,12 +169,14 @@ server <- function(input, output) {
             geom_sf(
                 data = data_sf, aes(
                     size = prop_obs,
-                    text = text
+                    text = text,
+                    fill = type_site,
+                    color = type_site
                 ),
-                color = cl_df$col[cl_df$site_type == input$habitat_select],
-                fill = cl_df$col_pale[cl_df$site_type == input$habitat_select],
                 shape = 21
             ) +
+            scale_fill_manual(values = cl_df$col_pale[cl_df$site_type %in% unique(data_sf$type_site)]) +
+            scale_color_manual(values = cl_df$col[cl_df$site_type %in% unique(data_sf$type_site)]) +
             theme(
                 legend.position = "none",
                 strip.background = element_blank(),
@@ -153,9 +194,13 @@ server <- function(input, output) {
         shinyalert(
             title = "Méthodologie & interprétations",
             text = tagList(
-                tags$span(style = "color: red;", "Red Text"),
+                tags$span(style = "color: black; font-weight: bold;", "Méthode"),
                 tags$br(),
-                "Standard text follows."
+                "Dans un premier temps, le nombre d'espèces attendues a été estimé pour chaque site à partir des occurrences présentes dans la base de données. Dans un second temps, nous avans calculé le ratio entre le nombre d'espèces observées et le nombre d'espèces attendues afin d'estimer la représentativité associés au inventaires.",
+                tags$br(),
+                tags$span(style = "color: black; font-weight: bold;", "Interprétation"),
+                tags$br(),
+                "Plus la valeur de représentativité est élevée, plus les inventaires utilisés peuvent être considérés comme efficaces pour capturer de façon exhaustive la biodiversité."
             ),
             size = "m",
             closeOnEsc = TRUE,
@@ -167,7 +212,7 @@ server <- function(input, output) {
             confirmButtonText = "OK",
             confirmButtonCol = "#E0B658",
             timer = 0,
-            imageUrl = "https://github.com/BiodiversiteQuebec/ReseauSuivi_communication/blob/main/docs/fiches_synthese_analyses_reseau/etat_connaissance/shiny_app/www/Logo_bq_sans_texte.png?raw=true",
+            imageUrl = "https://github.com/BiodiversiteQuebec/ReseauSuivi_communication/blob/main/docs/fiches_synthese_analyses_reseau/etat_connaissances/shiny_app/www/Logo_bq_sans_texte.png?raw=true",
             imageWidth = 100,
             imageHeight = 100,
             animation = FALSE
@@ -177,3 +222,33 @@ server <- function(input, output) {
 
 # Run the application
 shinyApp(ui = ui, server = server)
+
+# sites_est <- left_join(sites_est, data.frame(type_campaign = unique(sites_est$type_campaign), id = 1:5), by = join_by(type_campaign))
+
+# v_plot <- sites_est |>
+#     ggplot(aes(x = id, y = prop_obs, fill = type_campaign, colour = type_campaign)) +
+#     geom_violin() +
+#     scale_fill_manual(values = c("#242e8675", "#b881577d", "#88bcb985", "#e3bc6983", "#435a518d")) +
+#     scale_colour_manual(values = c("#242e86", "#b88157", "#88bcb9", "#e3bd69", "#435a51")) +
+#     geom_jitter(shape = 16, position = position_jitter(0.05), colour = "black", alpha = 0.5, cex = 2) +
+#     labs(x = "", y = "") +
+#     theme(
+#         legend.position = "none",
+#         # strip.background = element_blank(),
+#         # strip.text.x = element_blank(),
+#         text = element_text(size = 30),
+#         panel.background = element_rect(fill = "transparent", color = "transparent")
+#     ) +
+#     ggimage::geom_image(
+#         data = data.frame(id = 1:5, value = 105, type_campaign = unique(sites_est$type_campaign)),
+#         aes(x = id, y = value, image = rev(c(
+#             "/home/local/USHERBROOKE/juhc3201/BdQc/ReseauSuivi/portail_pictograms/taxons/xxx-plant.png",
+#             "/home/local/USHERBROOKE/juhc3201/BdQc/ReseauSuivi/portail_pictograms/taxons/012-beetle.png",
+#             "/home/local/USHERBROOKE/juhc3201/BdQc/ReseauSuivi/portail_pictograms/taxons/020-bird.png",
+#             "/home/local/USHERBROOKE/juhc3201/BdQc/ReseauSuivi/portail_pictograms/taxons/xxx-ortho.png",
+#             "/home/local/USHERBROOKE/juhc3201/BdQc/ReseauSuivi/portail_pictograms/taxons/007-bat.png"
+#         ))),
+#         size = 1 / 20
+#     )
+
+# ggplotly(v_plot)
