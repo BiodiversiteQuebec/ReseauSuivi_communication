@@ -11,7 +11,6 @@ library(rmapshaper)
 library(vegan)
 library(adespatial)
 library(shinyalert)
-library(base64enc)
 # Data
 #### Local data ####
 # ---------------- #

@@ -1,4 +1,4 @@
-source("docs/fiches_synthese_analyses_reseau/etat_connaissances/shiny_app/data_prep.r")
+source("docs/fiches_synthese_analyses_reseau/sensibilite/shiny_app/data_prep.r")
 
 # ---------- #
 # UI ----
@@ -7,7 +7,7 @@ ui <- navbarPage(
     shinyWidgets::useShinydashboard(),
     title = "My App",
     tabPanel(
-        "Représentativité des inventaires",
+        "Sensibilité des groupes taxonomiques",
         # icon = icon("home"),
         icon = tags$img(src = "https://png.pngtree.com/element_our/20200702/ourmid/pngtree-construction-sign-psd-transparent-bottom-image_2292003.jpg", height = "30px"),
         fluidPage(
@@ -19,69 +19,70 @@ ui <- navbarPage(
                     box(
                         title = div(
                             tags$img(src = "https://github.com/BiodiversiteQuebec/ReseauSuivi_communication/blob/main/docs/fiches_synthese_analyses_reseau/etat_connaissances/shiny_app/www/Logo_bq_sans_texte.png?raw=true", height = "30px", style = "margin-right: 10px;"),
-                            tags$b("Représentativité")
+                            tags$b("Importance d'une approche holistique")
                         ),
                         width = 4,
-                        "Les protocoles mis en place par le Réseau de Suivi présente une excellente représentativité de la biodiversité du Québec à hauteur de 84.4%, tous groupes taxonomiques confondus."
+                        "Ces analyses mettent en évidence l’importance des pressions anthropiques et des facteurs climatiques lorsqu’ils sont pris en compte avec les autres variables affectant la biodiversité."
                     ),
                     # box 2
                     box(
                         title = div(
                             tags$img(src = "https://github.com/BiodiversiteQuebec/ReseauSuivi_communication/blob/main/docs/fiches_synthese_analyses_reseau/etat_connaissances/shiny_app/www/Logo_bq_sans_texte.png?raw=true", height = "30px", style = "margin-right: 10px;"),
-                            tags$b("Groupes taxonomiques gagnants vs perdants")
+                            tags$b("Sentinelle face aux changements climatiques")
                         ),
                         width = 4,
-                        "Les groupes taxonomiques les mieux représentés sont les chiroptères et les anoures, alors que les papillons et les insectes du sol présentent des inventaites moins exhaustifs. "
+                        "En considérant une distinction par habitat, plusieurs groupes sentinelle pourraient être identifiés. Concernant les pressions associées aux changements climatiques, la végétation semble être un bon candidat pour les habitats associés aux forêts (toutes strates confondues), à la toundra (strate arbustif) et aux marais (herbacés) alors que les oiseaux semblent les plus pertinents pour les habitats associés aux tourbières."
                     ),
                     # box 3
                     box(
                         title = div(
                             tags$img(src = "https://github.com/BiodiversiteQuebec/ReseauSuivi_communication/blob/main/docs/fiches_synthese_analyses_reseau/etat_connaissances/shiny_app/www/Logo_bq_sans_texte.png?raw=true", height = "30px", style = "margin-right: 10px;"),
-                            tags$b("Où mettre plus d'efforts ?")
+                            tags$b("Sentinelle face aux pressions anthropiques")
                         ),
                         width = 4,
-                        "Certains sites en particuliers présentent un fort déficit dans leur niveau de représentativité de la biodiversité pour certains groupes taxonomiques."
+                        "Concernant les pressions anthropiques, la végétation semble être un bon candidat pour devenir un groupesentinelle pour les habitats associés aux forêts (toutes strates confondues) et aux marais (herbacés) alors que les coléoptères et les oiseaux semblent les plus pertinents pour les habitats associés à la toundra et aux tourbières, respectivement."
                     ),
                 ),
                 # second row for dataselection & map visualisation on two columns
                 fluidRow(
-                    column(
-                        4,
-                        fluidRow(box(
-                            width = 12,
-                            title = "Groupe taxonomique",
-                            selectInput("taxon_select",
-                                label = "",
-                                choices = taxon
-                            )
-                        )),
-                        fluidRow(box(
-                            width = 12,
-                            title = "Habitat",
-                            uiOutput("habitat",
-                                label = ""
-                            ) # associated to renderUI in server section
-                        )),
-                        fluidRow(box(
-                            width = 12,
-                            title = "",
-                            plotlyOutput("taxon_map", height = "600px")
-                        ))
-                    ),
-                    column(
-                        8,
-                        box(
-                            width = 12,
-                            div(HTML("<b>Carte de représentativité</b> "), style = "display: inline-block;"),
-                            actionButton("map_button", label = "", icon = icon("info"), style = "display: inline-block;"),
-                            plotlyOutput("map", height = "900px")
+                    box(
+                        width = 6,
+                        title = "Groupe taxonomique",
+                        selectInput("taxon_select",
+                            label = "",
+                            choices = taxon
                         )
+                    ),
+                    box(
+                        width = 6,
+                        title = "Habitat",
+                        uiOutput("habitat",
+                            label = ""
+                        ) # associated to renderUI in server section
+                    )
+                ),
+                fluidRow(
+                    box(
+                        width = 4,
+                        title = "",
+                        plotlyOutput("map", height = "600px")
+                    ),
+                    box(
+                        width = 4,
+                        title = "",
+                        plotOutput("venn_diag", height = "600px")
+                    ),
+                    box(
+                        width = 4,
+                        title = "",
+                        dataTableOutput("var_dt")
                     )
                 )
             )
         )
     )
 )
+
 
 # ---------- #
 # Server ----
@@ -90,10 +91,10 @@ ui <- navbarPage(
 server <- function(input, output) {
     #### Habitat selection depending on taxon choice
     output$habitat <- renderUI({
-        n <- unique(sites_est$type_site[sites_est$type_campaign == input$taxon_select])
+        n <- names(beta_hab_ls[[input$taxon_select]])
         selectInput("habitat_select",
             label = "",
-            choices = c("global", n)
+            choices = c("global", sapply(strsplit(n, "-"), `[`, 2))
         )
     })
 
@@ -101,76 +102,68 @@ server <- function(input, output) {
     # --------------------- #
     # selection des données en fonction des filtres précédents
     # --- #
-    est <- reactive({
+    lcbd <- reactive({
         if (input$habitat_select == "global") {
-            data <- sites_est[sites_est$type_campaign == input$taxon_select, ]
+            data <- data.frame(
+                taxon = input$taxon_select,
+                lcbd = beta_ls[[input$taxon_select]][[1]]$LCBD,
+                site_code = names(beta_ls[[input$taxon_select]][[1]]$LCBD)
+            )
+            data <- data |>
+                left_join(sites[, c("site_code", "lat", "lon", "type")], by = join_by(site_code)) |>
+                rename(habitat = type) |>
+                st_as_sf(coords = c("lon", "lat"), crs = st_crs(4326))
         } else {
-            data <- sites_est[sites_est$type_campaign == input$taxon_select & sites_est$type_site == input$habitat_select, ]
+            data <- data.frame(
+                taxon = input$taxon_select,
+                habitat = input$habitat_select,
+                lcbd = beta_hab_ls[[input$taxon_select]][[paste(input$taxon_select, input$habitat_select, sep = "-")]]$LCBD,
+                site_code = names(beta_hab_ls[[input$taxon_select]][[paste(input$taxon_select, input$habitat_select, sep = "-")]]$LCBD)
+            )
+            data <- data |>
+                left_join(sites[, c("site_code", "lat", "lon")], by = join_by(site_code)) |>
+                st_as_sf(coords = c("lon", "lat"), crs = st_crs(4326))
         }
+    })
 
-        data <- data |>
-            st_as_sf(coords = c("lon", "lat"), crs = st_crs(4326))
+    venn <- reactive({
+        if (input$habitat_select == "global") {
+            data <- varpart_ls[[input$taxon_select]]
+        } else {
+            data <- varpart_hab_ls[[input$taxon_select]][[input$habitat_select]]
+        }
     })
 
     # Plot zone #
     # --------- #
-    # 0 - Génération de violin plot par groupe taxo
-    output$taxon_map <- renderPlotly({
-        v_plot <- sites_est |>
-            ggplot(aes(x = id, y = prop_obs, fill = type_campaign, colour = type_campaign)) +
-            geom_violin() +
-            scale_fill_manual(values = c("#242e8675", "#b881577d", "#88bcb985", "#e3bc6983", "#435a518d")) +
-            scale_colour_manual(values = c("#242e86", "#b88157", "#88bcb9", "#e3bd69", "#435a51")) +
-            geom_jitter(aes(text = code_site), shape = 16, position = position_jitter(0.05), colour = "black", alpha = 0.5, cex = 2) +
-            labs(x = "", y = "") +
-            scale_y_continuous(limits = c(0, 100)) +
-            scale_x_continuous(breaks = 1:5, labels = c("Chiroptères", "Oiseaux", "Orthoptères", "Plantes", "Insectes du sol")) +
-            theme(
-                legend.position = "none",
-                # strip.background = element_blank(),
-                # strip.text.x = element_blank(),
-                # axis.text.x = element_blank(), # Masque les labels texte originaux
-                # axis.ticks.x = element_blank(), # Masque les graduations de l'axe X
-                text = element_text(size = 15),
-                panel.background = element_rect(fill = "transparent", color = "transparent")
-            )
-
-        v_plot2 <- ggplotly(v_plot, tooltip = "text")
-        gg_plotly <- style(v_plot2, hoverinfo = "skip", traces = 2)
-        gg_plotly
-    })
-
-    # 1 - génération de la carte de représentativite des inventaires
+    # 1 - generation de la carte de LCBD - y matrice
     output$map <- renderPlotly({
-        data_sf <-
-            est() |>
+        data2 <-
+            lcbd() |>
             mutate(text = paste(
-                "Code site: ", code_site,
-                "\nTaxon: ", type_campaign,
-                "\nHabitat: ", type_site,
-                "\nNb espèces observées: ", sp_observed,
-                "\nNb espèces estimées: ", round(sp_estimator, digits = 0),
-                "\nReprésentativité: ", round(prop_obs, digits = 2), "%"
+                "Code site: ", site_code,
+                "\nHabitat: ", habitat,
+                "\nLCBD: ", round(lcbd, digits = 2)
             ))
         p_map <- ggplot() +
             geom_sf(
-                data = qc3
+                data = qc2
             ) +
             geom_sf(
                 data = lakes_qc3,
                 fill = "white"
             ) +
             geom_sf(
-                data = data_sf, aes(
-                    size = prop_obs,
+                data = data2, aes(
+                    size = lcbd,
                     text = text,
-                    fill = type_site,
-                    color = type_site
+                    fill = habitat,
+                    color = habitat
                 ),
                 shape = 21
             ) +
-            scale_fill_manual(values = cl_df$col_pale[cl_df$site_type %in% unique(data_sf$type_site)]) +
-            scale_color_manual(values = cl_df$col[cl_df$site_type %in% unique(data_sf$type_site)]) +
+            scale_fill_manual(values = cl_df$col_pale[cl_df$site_type %in% unique(data2$habitat)]) +
+            scale_color_manual(values = cl_df$col[cl_df$site_type %in% unique(data2$habitat)]) +
             theme(
                 legend.position = "none",
                 strip.background = element_blank(),
@@ -181,6 +174,52 @@ server <- function(input, output) {
         ggplotly(p_map, tooltip = "text")
     })
 
+    # 2 - génération du diagramme de Venn
+    output$venn_diag <- renderPlot({
+        them <- data.frame(
+            them = venn()[["varpart_correspondance"]]$sign
+        ) |>
+            left_join(var_expl, by = join_by(them == sign))
+        plot(
+            venn()[["partition_table"]],
+            Xnames = them$short_sign,
+            bg = venn()[["varpart_correspondance"]]$col,
+            cex = 1,
+            id.size = 1.5
+        )
+    })
+
+    # 3 - génération du tableau résumant les variables selectionnées pour les matrices Xs
+    output$var_dt <- renderDataTable({
+        dt <- venn()$variables_selec
+        dt$var[nchar(dt$var) == 0] <- NA
+        dt <- dt[!is.na(dt$var), ]
+        dt_ls <- split(dt, dt$categorie)
+
+        dt_ls2 <- lapply(dt_ls, function(x) {
+            if (str_detect(x$var, ",") == F) {
+                x <- x
+            } else {
+                var <- strsplit(x$var, ",")
+                x <- data.frame(
+                    categorie = x$categorie,
+                    var = unlist(var)
+                )
+            }
+        })
+
+        dt2 <- do.call("rbind", dt_ls2) |>
+            left_join(var_expl[, c("sign", "long_sign")], by = join_by(categorie == sign)) |>
+            select(-categorie) |>
+            rename(Catégorie = long_sign, Variables = var) |>
+            relocate(Catégorie)
+        datatable(
+            dt2,
+            rownames = F
+        )
+    })
+
+
     # Button zone #
     # ----------- #
     # map button
@@ -190,11 +229,11 @@ server <- function(input, output) {
             text = tagList(
                 tags$span(style = "color: black; font-weight: bold;", "Méthode"),
                 tags$br(),
-                "Dans un premier temps, le nombre d'espèces attendues a été estimé pour chaque site à partir des occurrences présentes dans la base de données. Dans un second temps, nous avans calculé le ratio entre le nombre d'espèces observées et le nombre d'espèces attendues afin d'estimer la représentativité associés au inventaires.",
+                "Carte des valeurs de contribution locale à la diversité béta (LCBD)",
                 tags$br(),
                 tags$span(style = "color: black; font-weight: bold;", "Interprétation"),
                 tags$br(),
-                "Plus la valeur de représentativité est élevée, plus les inventaires utilisés peuvent être considérés comme efficaces pour capturer de façon exhaustive la biodiversité."
+                "Ajout D'informations ici"
             ),
             size = "m",
             closeOnEsc = TRUE,
@@ -212,6 +251,8 @@ server <- function(input, output) {
             animation = FALSE
         )
     })
+    # Venn diagram button
+    # Table button
 }
 
 # Run the application
