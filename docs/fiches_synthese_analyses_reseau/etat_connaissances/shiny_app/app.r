@@ -121,7 +121,7 @@ server <- function(input, output) {
             geom_violin() +
             scale_fill_manual(values = c("#242e8675", "#b881577d", "#88bcb985", "#e3bc6983", "#435a518d")) +
             scale_colour_manual(values = c("#242e86", "#b88157", "#88bcb9", "#e3bd69", "#435a51")) +
-            geom_jitter(shape = 16, position = position_jitter(0.05), colour = "black", alpha = 0.5, cex = 2) +
+            geom_jitter(aes(text = code_site), shape = 16, position = position_jitter(0.05), colour = "black", alpha = 0.5, cex = 2) +
             labs(x = "", y = "") +
             theme(
                 legend.position = "none",
@@ -129,21 +129,42 @@ server <- function(input, output) {
                 # strip.text.x = element_blank(),
                 text = element_text(size = 15),
                 panel.background = element_rect(fill = "transparent", color = "transparent")
-            ) +
-            ggimage::geom_image(
-                data = data.frame(id = 1:5, value = 105, type_campaign = unique(sites_est$type_campaign)),
-                aes(x = id, y = value, image = rev(c(
-                    "/home/local/USHERBROOKE/juhc3201/BdQc/ReseauSuivi/portail_pictograms/taxons/xxx-plant.png",
-                    "/home/local/USHERBROOKE/juhc3201/BdQc/ReseauSuivi/portail_pictograms/taxons/012-beetle.png",
-                    "/home/local/USHERBROOKE/juhc3201/BdQc/ReseauSuivi/portail_pictograms/taxons/020-bird.png",
-                    "/home/local/USHERBROOKE/juhc3201/BdQc/ReseauSuivi/portail_pictograms/taxons/xxx-ortho.png",
-                    "/home/local/USHERBROOKE/juhc3201/BdQc/ReseauSuivi/portail_pictograms/taxons/007-bat.png"
-                ))),
-                size = 1 / 15
             )
+        # +
+        # ggimage::geom_image(
+        #     data = data.frame(id = 1:5, value = 105, type_campaign = unique(sites_est$type_campaign)),
+        #     aes(x = id, y = value, image = rev(c(
+        #         "/home/local/USHERBROOKE/juhc3201/BdQc/ReseauSuivi/portail_pictograms/taxons/xxx-plant.png",
+        #         "/home/local/USHERBROOKE/juhc3201/BdQc/ReseauSuivi/portail_pictograms/taxons/012-beetle.png",
+        #         "/home/local/USHERBROOKE/juhc3201/BdQc/ReseauSuivi/portail_pictograms/taxons/020-bird.png",
+        #         "/home/local/USHERBROOKE/juhc3201/BdQc/ReseauSuivi/portail_pictograms/taxons/xxx-ortho.png",
+        #         "/home/local/USHERBROOKE/juhc3201/BdQc/ReseauSuivi/portail_pictograms/taxons/007-bat.png"
+        #     ))),
+        #     size = 1 / 15
+        # )
         # v_plot
-        v_plot2 <- ggplotly(v_plot)
-        v_final <- style(v_plot2, hoverinfo = "none", traces = 1)
+        v_plot2 <- ggplotly(v_plot, tooltip = "text")
+        # v_final <- style(v_plot2, tooltip = "text")
+        # v_final <- style(v_plot2, hoverinfo = "none", traces = 1)
+        gg_plotly <- style(v_plot2, hoverinfo = "skip", traces = 2)
+        gg_plotly <- layout(
+            gg_plotly,
+            images = list(
+                list(
+                    source = "docs/fiches_synthese_analyses_reseau/etat_connaissances/shiny_app/www/Logo_bq_sans_texte.png", # URL de l'image
+                    xref = "paper", # Référence : "paper" (coordonnées de 0 à 1) ou "x" (coordonnées des données)
+                    yref = "paper", # Référence : "paper" (coordonnées de 0 à 1) ou "y" (coordonnées des données)
+                    x = 0.9, # Position X (0.9 = en haut à droite)
+                    y = 0.95, # Position Y
+                    sizex = 0.15, # Largeur de l'image relative à la zone d'affichage
+                    sizey = 0.15, # Hauteur de l'image
+                    xanchor = "right", # Point d'ancrage horizontal
+                    yanchor = "top", # Point d'ancrage vertical
+                    opacity = 0.8, # Opacité (0 = invisible, 1 = opaque)
+                    layer = "above" # Placer "above" (au-dessus des points) ou "below" (en arrière-plan)
+                )
+            )
+        )
     })
 
     # 1 - génération de la carte de représentativite des inventaires
