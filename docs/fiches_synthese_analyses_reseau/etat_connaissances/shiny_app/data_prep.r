@@ -14,7 +14,12 @@ library(shinyalert)
 # Data
 #### Local data ####
 # ---------------- #
-sites_est <- readRDS("/home/local/USHERBROOKE/juhc3201/BdQc/ReseauSuivi/GITHUB/ReseauSuivi_Indicateurs/Summer_blitz_2025/7_rarefaction/inext_estimates_per_sites.rds")
+sites_est <- readRDS("/home/local/USHERBROOKE/juhc3201/BdQc/ReseauSuivi/GITHUB/ReseauSuivi_Indicateurs/Summer_blitz_2025/7_rarefaction/inext_estimates_per_sites.rds") |>
+    mutate(extra = paste(type_campaign, type_site, sep = "-")) |>
+    filter(type_site != "milieu humide côtier") |>
+    filter(!extra %in% c("chiropteres-toundrique", "vegetation_transect-marais", "vegetation_transect-toundrique"))
+
+
 
 sites_est <- sites_est |>
     left_join(data.frame(type_campaign = unique(sites_est$type_campaign), id = 1:5), by = join_by(type_campaign))

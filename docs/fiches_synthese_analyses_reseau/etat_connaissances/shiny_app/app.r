@@ -116,15 +116,27 @@ server <- function(input, output) {
     # --------- #
     # 0 - Génération de violin plot par groupe taxo
     output$taxon_map <- renderPlotly({
-        v_plot <- sites_est |>
-            ggplot(aes(x = id, y = prop_obs, fill = type_campaign, colour = type_campaign)) +
+        data2 <- sites_est |>
+            filter(type_campaign == input$taxon_select)
+
+        data3 <- data2 |>
+            mutate(type_site = "global")
+        data4 <- rbind(data3, data2) |>
+            mutate(type_site = factor(type_site, levels = unique(type_site)), id = as.numeric(type_site))
+
+        colors <- cl_df[cl_df$site_type %in% levels(data4$type_site), ] |>
+            arrange(fct_relevel(site_type, levels(data4$type_site)))
+
+        v_plot <- data4 |>
+            ggplot(aes(x = id, y = prop_obs, fill = type_site, colour = type_site)) +
             geom_violin() +
-            scale_fill_manual(values = c("#242e8675", "#b881577d", "#88bcb985", "#e3bc6983", "#435a518d")) +
-            scale_colour_manual(values = c("#242e86", "#b88157", "#88bcb9", "#e3bd69", "#435a51")) +
+            scale_fill_manual(values = colors$col_pale) +
+            scale_colour_manual(values = colors$col) +
             geom_jitter(aes(text = code_site), shape = 16, position = position_jitter(0.05), colour = "black", alpha = 0.5, cex = 2) +
+            geom_hline(yintercept = 50, linetype = "dashed", linewidth = 0.5, color = "grey") +
             labs(x = "", y = "") +
-            scale_y_continuous(limits = c(0, 100)) +
-            scale_x_continuous(breaks = 1:5, labels = c("Chiroptères", "Oiseaux", "Orthoptères", "Plantes", "Insectes du sol")) +
+            # scale_y_continuous(limits = c(0, 100)) +
+            scale_x_continuous(breaks = 1:length(unique(data4$type_site)), labels = unique(data4$type_site)) +
             theme(
                 legend.position = "none",
                 # strip.background = element_blank(),
