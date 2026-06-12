@@ -14,16 +14,11 @@ library(shinyalert)
 #### Local data ####
 # ---------------- #
 # recup des sites dans coleo avec les lat/lon
-sites <- coleo_request_general("sites", response_as_df = TRUE, schema = "public")
-coord_sites <- sites$geom$coordinates
-coord <- lapply(coord_sites, function(x) {
-    lon <- x[1]
-    lat <- x[2]
-
-    df <- data.frame(lon = lon, lat = lat)
-    df
-})
-sites <- cbind(sites, do.call("rbind", coord))
+sites <- coleo_request_general("sites", output_geometry = TRUE, schema = "public") |>
+    st_coordinates(sites) |>
+    as.data.frame() |>
+    rename(lat = Y, lon = X) |>
+    cbind(sites)
 
 # habitat data
 # ------------

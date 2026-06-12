@@ -14,11 +14,11 @@ library(shinyalert)
 library(DT)
 
 # raw data
-sites <- coleo_request_general("sites", response_as_df = TRUE, schema = "public")
-sites <- sites |>
-    mutate(lon = sapply(geom$coordinates, "[", 1)) |>
-    mutate(lat = sapply(geom$coordinates, "[", 2)) |>
-    as.data.frame()
+sites <- coleo_request_general("sites", output_geometry = TRUE, schema = "public") |>
+    st_coordinates(sites) |>
+    as.data.frame() |>
+    rename(lat = Y, lon = X) |>
+    cbind(sites)
 
 qc <- geodata::gadm("CAN", level = 1, path = getwd()) |>
     st_as_sf() |>

@@ -19,8 +19,6 @@ sites_est <- readRDS("/home/local/USHERBROOKE/juhc3201/BdQc/ReseauSuivi/GITHUB/R
     filter(type_site != "milieu humide côtier") |>
     filter(!extra %in% c("chiropteres-toundrique", "vegetation_transect-marais", "vegetation_transect-toundrique"))
 
-
-
 sites_est <- sites_est |>
     left_join(data.frame(type_campaign = unique(sites_est$type_campaign), id = 1:5), by = join_by(type_campaign))
 
