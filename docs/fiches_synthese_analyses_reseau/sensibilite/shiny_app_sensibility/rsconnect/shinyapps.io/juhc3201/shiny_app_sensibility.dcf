@@ -1,0 +1,10 @@
+name: shiny_app_sensibility
+title:
+username: juhc3201
+account: juhc3201
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 17531692
+bundleId: 12151526
+url: https://juhc3201.shinyapps.io/shiny_app_sensibility/
+version: 1
