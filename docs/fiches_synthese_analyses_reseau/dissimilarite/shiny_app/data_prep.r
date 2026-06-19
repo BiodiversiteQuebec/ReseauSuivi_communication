@@ -1,24 +1,22 @@
 # Packages
 library(shiny)
 library(shinydashboard)
+library(shinyWidgets)
 library(tidyverse)
 library(ggplot2)
 library(plotly)
 library(rcoleo)
 library(sf)
 library(rmapshaper)
-library(vegan)
 library(adespatial)
 library(shinyalert)
+library(geodata)
+library(rnaturalearth)
 # Data
 #### Local data ####
 # ---------------- #
 # recup des sites dans coleo avec les lat/lon
-sites <- coleo_request_general("sites", output_geometry = TRUE, schema = "public") |>
-    st_coordinates(sites) |>
-    as.data.frame() |>
-    rename(lat = Y, lon = X) |>
-    cbind(sites)
+sites <- readRDS(url("https://object-arbutus.cloud.computecanada.ca/bq-io/acer/reseau_suivi_data/xx_compo_communaute/sites_data_18JUIN2026.rds"))
 
 # habitat data
 # ------------

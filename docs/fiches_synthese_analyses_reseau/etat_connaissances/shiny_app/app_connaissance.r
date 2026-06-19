@@ -1,4 +1,5 @@
-source("docs/fiches_synthese_analyses_reseau/etat_connaissances/shiny_app/data_prep.r")
+# source("docs/fiches_synthese_analyses_reseau/etat_connaissances/shiny_app/data_prep.r")
+source("data_prep.r")
 
 # ---------- #
 # UI ----

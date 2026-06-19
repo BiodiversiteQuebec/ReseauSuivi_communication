@@ -2,19 +2,20 @@
 library(fuzzyjoin)
 library(shiny)
 library(shinydashboard)
+library(shinyWidgets)
+library(shinyalert)
 library(tidyverse)
 library(ggplot2)
 library(plotly)
-library(rcoleo)
 library(sf)
 library(rmapshaper)
-library(vegan)
-library(adespatial)
-library(shinyalert)
+library(geodata)
+library(rnaturalearth)
+
 # Data
 #### Local data ####
 # ---------------- #
-sites_est <- readRDS("/home/local/USHERBROOKE/juhc3201/BdQc/ReseauSuivi/GITHUB/ReseauSuivi_Indicateurs/Summer_blitz_2025/7_rarefaction/inext_estimates_per_sites.rds") |>
+sites_est <- readRDS(url("https://object-arbutus.cloud.computecanada.ca/bq-io/acer/reseau_suivi_data/xx_compo_communaute/inext_estimates_per_sites_4DEC2025.rds")) |>
     mutate(extra = paste(type_campaign, type_site, sep = "-")) |>
     filter(type_site != "milieu humide côtier") |>
     filter(!extra %in% c("chiropteres-toundrique", "vegetation_transect-marais", "vegetation_transect-toundrique"))
